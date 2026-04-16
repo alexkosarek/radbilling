@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dr. Verlare — Radiology Billing</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #F5F3EE; --surface: #FFFFFF; --surface2: #EDEAE3; --border: #D8D4CB;
+    --text: #1A1916; --text-muted: #6B6860; --text-faint: #A09D97;
+    --accent: #1A3A2A; --accent-light: #E8F0EB;
+    --green: #2D6A4F; --green-bg: #EAF4EE;
+    --amber: #92650A; --amber-bg: #FDF3DC;
+    --red: #9B2626; --red-bg: #FCEAEA;
+    --blue: #1A3A6B; --blue-bg: #E8EEF8;
+    --mono: 'DM Mono', monospace; --serif: 'Instrument Serif', serif; --sans: 'DM Sans', sans-serif;
+    --radius: 10px; --radius-sm: 6px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+  }
+  body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; font-size: 15px; line-height: 1.6; }
+  header { background: var(--accent); color: white; padding: 0 40px; display: flex; align-items: center; justify-content: space-between; height: 60px; position: sticky; top: 0; z-index: 100; }
+  .logo { display: flex; align-items: baseline; gap: 10px; }
+  .logo-name { font-family: var(--serif); font-size: 22px; letter-spacing: -0.3px; }
+  .logo-tag { font-family: var(--mono); font-size: 11px; opacity: 0.55; letter-spacing: 0.05em; }
+  .header-right { font-family: var(--mono); font-size: 11px; opacity: 0.5; letter-spacing: 0.05em; }
+  main { max-width: 960px; margin: 0 auto; padding: 48px 24px 80px; }
+  .hero { margin-bottom: 40px; }
+  .hero h1 { font-family: var(--serif); font-size: 42px; font-weight: 400; line-height: 1.15; margin-bottom: 12px; }
+  .hero h1 em { color: var(--accent); font-style: italic; }
+  .hero p { font-size: 16px; color: var(--text-muted); max-width: 520px; line-height: 1.65; }
+  .steps { display: flex; gap: 8px; margin-bottom: 36px; align-items: center; }
+  .step { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-faint); font-family: var(--mono); }
+  .step.active { color: var(--text); }
+  .step.done { color: var(--green); }
+  .step-num { width: 22px; height: 22px; border-radius: 50%; border: 1px solid currentColor; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; }
+  .step.done .step-num { background: var(--green); border-color: var(--green); color: white; }
+  .step.active .step-num { background: var(--accent); border-color: var(--accent); color: white; }
+  .step-div { width: 32px; height: 1px; background: var(--border); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px 32px; margin-bottom: 24px; box-shadow: var(--shadow); }
+  .card-title { font-size: 13px; font-family: var(--mono); color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 20px; }
+  .upload-zone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 52px 32px; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; background: var(--bg); }
+  .upload-zone:hover, .upload-zone.dragover { border-color: var(--accent); background: var(--accent-light); }
+  .upload-zone input { display: none; }
+  .upload-icon { width: 52px; height: 52px; background: var(--accent-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 22px; }
+  .upload-zone h3 { font-size: 16px; font-weight: 500; margin-bottom: 6px; }
+  .upload-zone p { font-size: 13px; color: var(--text-muted); }
+  .file-types { display: flex; justify-content: center; gap: 8px; margin-top: 16px; }
+  .file-chip { font-family: var(--mono); font-size: 11px; padding: 3px 8px; border-radius: 4px; background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); }
+  .col-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .field-group label { display: block; font-size: 12px; font-family: var(--mono); color: var(--text-muted); margin-bottom: 6px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .field-hint { font-size: 11px; color: var(--text-faint); margin-top: 4px; }
+  select, input[type="text"] { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: var(--sans); font-size: 14px; color: var(--text); background: var(--bg); outline: none; transition: border-color 0.15s; }
+  select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B6860' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; background-color: var(--bg); padding-right: 30px; }
+  select:focus, input:focus { border-color: var(--accent); }
+  .btn { display: inline-flex; align-items: center; gap: 7px; padding: 10px 20px; font-family: var(--sans); font-size: 14px; font-weight: 500; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; transition: all 0.15s; text-decoration: none; }
+  .btn:hover { background: var(--surface2); border-color: var(--text-muted); }
+  .btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
+  .btn-primary:hover { opacity: 0.88; }
+  .btn-sm { padding: 7px 14px; font-size: 13px; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-row { display: flex; gap: 10px; margin-top: 20px; align-items: center; flex-wrap: wrap; }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow); }
+  .stat-label { font-size: 11px; font-family: var(--mono); color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .stat-val { font-size: 26px; font-weight: 600; font-family: var(--mono); color: var(--text); line-height: 1; }
+  .stat-val.green { color: var(--green); }
+  .stat-val.blue { color: var(--blue); }
+  .stat-sub { font-size: 12px; font-family: var(--mono); color: var(--text-muted); margin-top: 5px; }
+  .table-controls { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
+  .search-wrap { flex: 1; min-width: 200px; position: relative; }
+  .search-wrap input { padding-left: 34px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236B6860' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='M21 21l-4.35-4.35'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: 10px center; background-color: var(--bg); }
+  .filter-group { display: flex; gap: 4px; }
+  .filter-btn { padding: 6px 12px; font-size: 12px; font-family: var(--mono); border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
+  .filter-btn:hover { border-color: var(--text-muted); color: var(--text); }
+  .filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); margin-bottom: 20px; }
+  .results-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .results-table thead { background: var(--surface2); border-bottom: 1px solid var(--border); }
+  .results-table th { text-align: left; padding: 10px 14px; font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--text-muted); letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; }
+  .results-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
+  .results-table tbody tr:last-child td { border-bottom: none; }
+  .results-table tbody tr:hover td { background: var(--bg); }
+  .results-table tfoot td { background: var(--accent); color: white; font-family: var(--mono); font-weight: 600; font-size: 13px; padding: 12px 14px; border: none; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-family: var(--mono); font-weight: 500; letter-spacing: 0.03em; }
+  .badge-dot { width: 5px; height: 5px; border-radius: 50%; }
+  .badge-ct { background: var(--blue-bg); color: var(--blue); }
+  .badge-ct .badge-dot { background: var(--blue); }
+  .badge-mri { background: var(--green-bg); color: var(--green); }
+  .badge-mri .badge-dot { background: var(--green); }
+  .badge-dup { background: var(--red-bg); color: var(--red); }
+  .notice { background: var(--amber-bg); border: 1px solid #E8C97A; border-radius: var(--radius-sm); padding: 12px 16px; font-size: 13px; color: var(--amber); margin-bottom: 16px; display: flex; gap: 10px; align-items: flex-start; }
+  .notice-red { background: var(--red-bg); border: 1px solid #F0BBBB; color: var(--red); }
+  .instructions { background: var(--accent-light); border: 1px solid #B8D4C0; border-radius: var(--radius); padding: 24px 28px; margin-bottom: 32px; }
+  .instructions h3 { font-family: var(--serif); font-size: 18px; font-weight: 400; margin-bottom: 14px; color: var(--accent); }
+  .instructions ol { padding-left: 18px; color: var(--text-muted); font-size: 14px; line-height: 1.8; }
+  .instructions li { margin-bottom: 2px; }
+  .instructions strong { color: var(--text); font-weight: 500; }
+  .section-head { font-size: 13px; font-family: var(--mono); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px; margin-top: 32px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .history-bar { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; box-shadow: var(--shadow); margin-top: 32px; }
+  .history-nums { display: flex; gap: 32px; flex-wrap: wrap; margin-bottom: 20px; }
+  .h-item-label { font-size: 11px; font-family: var(--mono); color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+  .h-item-val { font-size: 20px; font-family: var(--mono); font-weight: 600; color: var(--text); }
+  .h-item-val.green { color: var(--green); }
+  .accordion-trigger { background: none; border: none; cursor: pointer; font-size: 12px; font-family: var(--mono); color: var(--text-muted); display: flex; align-items: center; gap: 8px; padding: 0; width: 100%; text-align: left; }
+  .accordion-trigger:hover { color: var(--text); }
+  .accordion-arrow { display: inline-block; transition: transform 0.2s; font-size: 10px; }
+  .accordion-arrow.open { transform: rotate(90deg); }
+  .accordion-body { display: none; margin-top: 14px; }
+  .accordion-body.open { display: block; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .animate-in { animation: fadeUp 0.35s ease both; }
+  .hidden { display: none !important; }
+  .comp-cell { font-family: var(--mono); font-weight: 600; color: var(--green); }
+  .total-row td { background: var(--accent) !important; color: white !important; font-family: var(--mono) !important; font-weight: 600 !important; padding: 12px 14px !important; border: none !important; }
+  .total-row .comp-cell { color: #90EE90 !important; font-size: 14px; }
+  footer { text-align: center; padding: 32px; font-size: 12px; font-family: var(--mono); color: var(--text-faint); border-top: 1px solid var(--border); }
+  @media (max-width: 640px) {
+    main { padding: 24px 16px 60px; } header { padding: 0 20px; } .hero h1 { font-size: 30px; }
+    .stats-grid { grid-template-columns: repeat(2,1fr); } .col-grid { grid-template-columns: 1fr; } .steps { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-name">RadBilling</span>
+  </div>
+  <div class="header-right">Dr. Jordan Verlare</div>
+</header>
+
+<main>
+
+  <div class="hero animate-in">
+    <h1>Reads,<br><em>instantly billed.</em></h1>
+    <p>Upload your monthly case exports and this tool assigns compensation to every CT and MRI read, removes duplicates, and generates a clean billing report.</p>
+  </div>
+
+  <!-- Steps -->
+  <div class="steps animate-in" id="stepsBar">
+    <div class="step active" id="step1"><div class="step-num">1</div><span>Upload file</span></div>
+    <div class="step-div"></div>
+    <div class="step" id="step2"><div class="step-num">2</div><span>Review &amp; export</span></div>
+  </div>
+
+  <!-- Instructions -->
+  <div class="instructions animate-in" id="instructionsBox">
+    <h3>How it works</h3>
+    <ol>
+      <li><strong>Upload</strong> your monthly case export from your RIS system (.xlsx or .csv).</li>
+      <li><strong>Run billing</strong> — every CT read is valued at $35, every MRI at $45. Duplicates (accessions already billed in a prior month) are automatically removed.</li>
+      <li><strong>Download the report</strong> — a clean Excel file with all case info plus a Compensation column and total at the bottom. All new accessions are saved for future duplicate checking.</li>
+      <li><strong>Tax season:</strong> use the "Download all-time report" button to get every case ever billed as a single Excel file.</li>
+    </ol>
+  </div>
+
+  <!-- STEP 1: Upload -->
+  <div id="uploadSection">
+    <div class="card">
+      <div class="card-title">Step 1 &mdash; Upload case export</div>
+      <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+        <div class="upload-icon">&#128203;</div>
+        <h3>Drop your case file here</h3>
+        <p>Click to browse, or drag and drop your file</p>
+        <div class="file-types">
+          <span class="file-chip">.xlsx</span>
+          <span class="file-chip">.xls</span>
+          <span class="file-chip">.csv</span>
+        </div>
+      </div>
+      <div id="uploadErr" class="notice hidden" style="margin-top:16px;margin-bottom:0;">
+        <span>&#9888;&nbsp;</span><span id="uploadErrMsg"></span>
+      </div>
+    </div>
+
+    <!-- All-time history bar — always visible below upload box -->
+    <div class="history-bar" id="historyBarUpload">
+      <div class="history-nums">
+        <div>
+          <div class="h-item-label">All-time cases</div>
+          <div class="h-item-val" id="hCasesUpload">0</div>
+        </div>
+        <div>
+          <div class="h-item-label">CT reads</div>
+          <div class="h-item-val" style="color:var(--blue);" id="hCTUpload">0</div>
+        </div>
+        <div>
+          <div class="h-item-label">MRI reads</div>
+          <div class="h-item-val" id="hMRIUpload">0</div>
+        </div>
+        <div>
+          <div class="h-item-label">All-time earnings</div>
+          <div class="h-item-val green" id="hEarningsUpload">$0</div>
+        </div>
+      </div>
+      <div>
+        <button class="btn btn-sm" onclick="downloadAllTime()" style="font-family:var(--mono);">&#8595; Download all-time report</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: Results -->
+  <div id="resultsSection" class="hidden animate-in">
+
+    <!-- Action buttons — TOP, above everything -->
+    <div class="btn-row" style="margin-top:0;margin-bottom:24px;">
+      <button class="btn btn-primary" onclick="downloadReport()">&#8595; Download Excel report</button>
+      <button class="btn btn-sm" onclick="resetAll()">Upload another file</button>
+    </div>
+
+    <!-- Session stats — TOP, above the table -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Cases billed</div>
+        <div class="stat-val" id="sCases">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">CT reads</div>
+        <div class="stat-val blue" id="sCT">—</div>
+        <div class="stat-sub" id="sCTAmt"></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">MRI reads</div>
+        <div class="stat-val" id="sMRI">—</div>
+        <div class="stat-sub" id="sMRIAmt"></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total compensation</div>
+        <div class="stat-val green" id="sTotal">—</div>
+      </div>
+    </div>
+
+    <!-- Dup notice -->
+    <div id="dupNotice" class="notice hidden">
+      <span>&#9888;&nbsp;</span><span id="dupNoticeMsg"></span>
+    </div>
+
+    <!-- Table controls -->
+    <div class="table-controls">
+      <div class="search-wrap">
+        <input type="text" id="searchBox" placeholder="Search accession, procedure, patient…" oninput="renderTable()">
+      </div>
+      <div class="filter-group">
+        <button class="filter-btn active" id="fAll"  onclick="setFilter('all')">All</button>
+        <button class="filter-btn"        id="fCT"   onclick="setFilter('CT')">CT</button>
+        <button class="filter-btn"        id="fMRI"  onclick="setFilter('MRI')">MRI</button>
+        <button class="filter-btn"        id="fDups" onclick="setFilter('dup')">Duplicates</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="results-table" id="resultsTable">
+        <thead id="tableHead"></thead>
+        <tbody id="tableBody"></tbody>
+        <tfoot id="tableFoot"></tfoot>
+      </table>
+    </div>
+
+
+
+    <!-- All-time history bar — BELOW session stats -->
+    <div class="history-bar" id="historyBar">
+      <div class="history-nums">
+        <div>
+          <div class="h-item-label">All-time cases</div>
+          <div class="h-item-val" id="hCases">0</div>
+        </div>
+        <div>
+          <div class="h-item-label">CT reads</div>
+          <div class="h-item-val" style="color:var(--blue);" id="hCT">0</div>
+        </div>
+        <div>
+          <div class="h-item-label">MRI reads</div>
+          <div class="h-item-val" id="hMRI">0</div>
+        </div>
+        <div>
+          <div class="h-item-label">All-time earnings</div>
+          <div class="h-item-val green" id="hEarnings">$0</div>
+        </div>
+      </div>
+
+      <!-- Download all-time report — always visible -->
+      <div style="margin-bottom:16px;">
+        <button class="btn btn-sm" onclick="downloadAllTime()" style="font-family:var(--mono);">&#8595; Download all-time report</button>
+      </div>
+
+      <!-- Undo accordion -->
+      <div style="border-top:1px solid var(--border);padding-top:14px;margin-bottom:10px;">
+        <button class="accordion-trigger" onclick="toggleAccordion('undoAccordion', 'undoArrow')">
+          <span class="accordion-arrow" id="undoArrow">&#9654;</span>
+          Undo last upload
+        </button>
+        <div class="accordion-body" id="undoAccordion">
+          <div style="background:var(--amber-bg);border:1px solid #E8C97A;border-radius:var(--radius-sm);padding:14px 16px;margin-top:10px;">
+            <p style="font-size:13px;color:var(--amber);margin-bottom:10px;">This will remove all cases from the most recent upload from billing history. Use this only if you uploaded the wrong file.</p>
+            <button class="btn btn-sm" onclick="undoLast()" id="undoBtn" style="font-family:var(--mono);color:var(--amber);border-color:#E8C97A;" disabled>&#8635; Undo last upload</button>
+            <span id="undoLabel" style="font-size:12px;font-family:var(--mono);color:var(--text-faint);margin-left:10px;"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Clear history accordion -->
+      <div style="border-top:1px solid var(--border);padding-top:14px;">
+        <button class="accordion-trigger" onclick="toggleAccordion('clearAccordion', 'clearArrow')">
+          <span class="accordion-arrow" id="clearArrow">&#9654;</span>
+          <span style="color:var(--text-faint);">Advanced — clear all history</span>
+        </button>
+        <div class="accordion-body" id="clearAccordion">
+          <div style="background:var(--red-bg);border:1px solid #F0BBBB;border-radius:var(--radius-sm);padding:14px 16px;margin-top:10px;">
+            <p style="font-size:13px;color:var(--red);font-weight:500;margin-bottom:4px;">&#9888; This permanently deletes all billing history and cannot be undone.</p>
+            <p style="font-size:12px;color:var(--red);margin-bottom:12px;">Only use this if you are resetting the tool entirely. All stored accession numbers, totals, and records will be erased.</p>
+            <button class="btn btn-sm" onclick="confirmClearHistory()" style="color:var(--red);border-color:var(--red);font-family:var(--mono);">Permanently clear all history</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<footer>RadBilling &mdash; All data stored locally in your browser &mdash; Nothing is sent to any server</footer>
+
+<script>
+// ── Constants ──────────────────────────────────────────────────────────────
+const RATE_CT  = 35;
+const RATE_MRI = 45;
+const SK_RECS    = 'verlare_records_v2';
+const SK_STATS   = 'verlare_stats_v2';
+const SK_ACCS    = 'verlare_accs_v2';
+const SK_LAST    = 'verlare_lastbatch_v2';
+
+// ── State ──────────────────────────────────────────────────────────────────
+let rawHeaders = [];
+let rawRows    = [];
+let results    = [];   // all rows including dups
+let activeFilter = 'all';
+let sessionFileName = '';
+
+// ── Storage helpers ────────────────────────────────────────────────────────
+function loadAccs()  { try { return new Set(JSON.parse(localStorage.getItem(SK_ACCS)  || '[]')); } catch(e) { return new Set(); } }
+function loadStats() { try { return JSON.parse(localStorage.getItem(SK_STATS) || '{"cases":0,"ct":0,"mri":0,"earnings":0}'); } catch(e) { return {cases:0,ct:0,mri:0,earnings:0}; } }
+function loadRecs()  { try { return JSON.parse(localStorage.getItem(SK_RECS)  || '[]'); } catch(e) { return []; } }
+function loadLast()  { try { return JSON.parse(localStorage.getItem(SK_LAST)  || 'null'); } catch(e) { return null; } }
+
+function saveSession(billedRows) {
+  const accs   = loadAccs();
+  const stats  = loadStats();
+  const recs   = loadRecs();
+  const now    = new Date().toISOString();
+  const batchId = 'batch_' + Date.now();
+  const batchAccs = [];
+
+  billedRows.forEach(r => {
+    if (r.isDup) return;
+    accs.add(r.accession);
+    batchAccs.push(r.accession);
+    stats.cases++;
+    if (r.type === 'CT')  { stats.ct++;  stats.earnings += RATE_CT; }
+    if (r.type === 'MRI') { stats.mri++; stats.earnings += RATE_MRI; }
+    recs.push({
+      accession: r.accession, date: r.date, readDate: r.readDate,
+      procedure: r.procedure, status: r.status, hospital: r.hospital,
+      type: r.type, compensation: r.comp, savedAt: now, batchId,
+      fileName: sessionFileName
+    });
+  });
+
+  localStorage.setItem(SK_ACCS,  JSON.stringify([...accs]));
+  localStorage.setItem(SK_STATS, JSON.stringify(stats));
+  localStorage.setItem(SK_RECS,  JSON.stringify(recs));
+  localStorage.setItem(SK_LAST,  JSON.stringify({ batchId, batchAccs, count: billedRows.filter(r=>!r.isDup).length, savedAt: now, fileName: sessionFileName }));
+}
+
+function updateHistoryBar() {
+  const s = loadStats();
+  const fmt = n => '$' + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+  // Results page bar
+  const setIfExists = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setIfExists('hCases',    s.cases.toLocaleString());
+  setIfExists('hCT',       s.ct.toLocaleString());
+  setIfExists('hMRI',      s.mri.toLocaleString());
+  setIfExists('hEarnings', fmt(s.earnings));
+
+  // Upload page bar (always visible)
+  setIfExists('hCasesUpload',    s.cases.toLocaleString());
+  setIfExists('hCTUpload',       s.ct.toLocaleString());
+  setIfExists('hMRIUpload',      s.mri.toLocaleString());
+  setIfExists('hEarningsUpload', fmt(s.earnings));
+
+  const last = loadLast();
+  const undoBtn   = document.getElementById('undoBtn');
+  const undoLabel = document.getElementById('undoLabel');
+  if (undoBtn) {
+    undoBtn.disabled = !last;
+    if (undoLabel) undoLabel.textContent = last ? ('Last upload: "' + (last.fileName || 'unknown file') + '" — ' + last.count + ' cases') : 'No recent upload to undo';
+  }
+}
+
+// ── Accordion ──────────────────────────────────────────────────────────────
+function toggleAccordion(bodyId, arrowId) {
+  const body  = document.getElementById(bodyId);
+  const arrow = document.getElementById(arrowId);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  arrow.classList.toggle('open', !isOpen);
+}
+
+// ── Undo ───────────────────────────────────────────────────────────────────
+function undoLast() {
+  const last = loadLast();
+  if (!last) return;
+  if (!confirm('Undo the last upload (' + last.count + ' cases from "' + (last.fileName||'file') + '")? This will remove those accessions from history.')) return;
+
+  const accs  = loadAccs();
+  const stats = loadStats();
+  const recs  = loadRecs();
+
+  last.batchAccs.forEach(a => accs.delete(a));
+  const remaining = recs.filter(r => r.batchId !== last.batchId);
+  const removed   = recs.filter(r => r.batchId === last.batchId);
+  removed.forEach(r => {
+    stats.cases--;
+    if (r.type === 'CT')  { stats.ct--;  stats.earnings -= RATE_CT; }
+    if (r.type === 'MRI') { stats.mri--; stats.earnings -= RATE_MRI; }
+  });
+
+  localStorage.setItem(SK_ACCS,  JSON.stringify([...accs]));
+  localStorage.setItem(SK_STATS, JSON.stringify(stats));
+  localStorage.setItem(SK_RECS,  JSON.stringify(remaining));
+  localStorage.removeItem(SK_LAST);
+  updateHistoryBar();
+  alert('Undone. ' + removed.length + ' cases removed from history.');
+}
+
+// ── Clear history ──────────────────────────────────────────────────────────
+function confirmClearHistory() {
+  if (!confirm('Permanently clear ALL billing history for Dr. Verlare? This cannot be undone.')) return;
+  [SK_RECS, SK_STATS, SK_ACCS, SK_LAST].forEach(k => localStorage.removeItem(k));
+  updateHistoryBar();
+  alert('History cleared.');
+}
+
+// ── File handling ──────────────────────────────────────────────────────────
+function setupDrop() {
+  const dz = document.getElementById('dropZone');
+  const fi = document.getElementById('fileInput');
+  dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('dragover'); });
+  dz.addEventListener('dragleave', ()  => dz.classList.remove('dragover'));
+  dz.addEventListener('drop',      e  => { e.preventDefault(); dz.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]); });
+  fi.addEventListener('change',    e  => handleFile(e.target.files[0]));
+}
+
+function handleFile(file) {
+  if (!file) return;
+  sessionFileName = file.name;
+  document.getElementById('uploadErr').classList.add('hidden');
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb   = XLSX.read(e.target.result, { type: 'array', cellDates: true });
+      const ws   = wb.Sheets[wb.SheetNames[0]];
+      const data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+      if (data.length < 2) throw new Error('File appears empty or has no data rows.');
+      rawHeaders = data[0].map((h, i) => ({ label: String(h || 'Column ' + (i+1)), index: i }));
+      rawRows    = data.slice(1).filter(r => r.some(c => c !== '' && c !== null && c !== undefined));
+      if (!rawRows.length) throw new Error('No data rows found after the header row.');
+      runBilling();
+    } catch(err) {
+      document.getElementById('uploadErrMsg').textContent = err.message;
+      document.getElementById('uploadErr').classList.remove('hidden');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ── Auto-detect columns ────────────────────────────────────────────────────
+function detectCol(keys) {
+  for (const k of keys) {
+    const i = rawHeaders.findIndex(h => h.label.toLowerCase().includes(k));
+    if (i >= 0) return rawHeaders[i].index;
+  }
+  return -1;
+}
+
+// ── Classification ─────────────────────────────────────────────────────────
+function classify(proc) {
+  const p = String(proc).toUpperCase().trim();
+  if (p.startsWith('CT') || p.includes(' CT ') || /^CT[\s\/]/.test(p)) return 'CT';
+  if (p.startsWith('MR') || p.includes('MAGNETIC RESONANCE'))           return 'MRI';
+  return 'OTHER';
+}
+
+function fmtDate(v) {
+  try {
+    if (!v || v === '') return '';
+    if (v instanceof Date) return v.toLocaleDateString('en-US', {month:'2-digit',day:'2-digit',year:'numeric'});
+    if (typeof v === 'number' && v > 40000) {
+      const d = XLSX.SSF.parse_date_code(v);
+      return (d.m<10?'0':'')+d.m+'/'+(d.d<10?'0':'')+d.d+'/'+d.y;
+    }
+    return String(v);
+  } catch(e) { return String(v); }
+}
+
+function fmtCurrency(n) { return '$' + Number(n).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+
+// ── Run billing ────────────────────────────────────────────────────────────
+function runBilling() {
+  const accCol  = detectCol(['accession','acc #','acc#','acc num','case id']);
+  const procCol = detectCol(['procedure','exam','study','description','desc','modality','proc']);
+  const dateCol = detectCol(['scan date','date','dos','service date','exam date']);
+  const rdCol   = detectCol(['read date','read','finalized','completed']);
+  const statCol = detectCol(['status','result','report']);
+  const hospCol = detectCol(['hospital','location','facility','site']);
+
+  if (procCol < 0) throw new Error('Could not find a Procedure or Study Description column. Please check your file has a header row with column names.');
+
+  const knownAccs  = loadAccs();
+  const seenInFile = new Set();
+  results = [];
+
+  rawRows.forEach((row, i) => {
+    const accession = accCol  >= 0 ? String(row[accCol]  || '').trim() : '';
+    const procedure = String(row[procCol] || '').trim();
+    const date      = dateCol >= 0 ? fmtDate(row[dateCol])              : '';
+    const readDate  = rdCol   >= 0 ? fmtDate(row[rdCol])               : '';
+    const status    = statCol >= 0 ? String(row[statCol] || '').trim()  : '';
+    const hospital  = hospCol >= 0 ? String(row[hospCol] || '').trim()  : '';
+
+    if (!accession && !procedure) return;
+
+    const type  = classify(procedure);
+    const isDup = (accession && knownAccs.has(accession)) || (accession && seenInFile.has(accession));
+    const comp  = isDup ? 0 : (type === 'CT' ? RATE_CT : type === 'MRI' ? RATE_MRI : 0);
+
+    if (accession) seenInFile.add(accession);
+    results.push({ rowNum: i+2, accession, procedure, date, readDate, status, hospital, type, isDup, comp });
+  });
+
+  saveSession(results);
+  updateHistoryBar();
+  renderResults();
+
+  document.getElementById('uploadSection').classList.add('hidden');
+  document.getElementById('instructionsBox').classList.add('hidden');
+  document.getElementById('resultsSection').classList.remove('hidden');
+  setStep(2);
+}
+
+// ── Render results ─────────────────────────────────────────────────────────
+function renderResults() {
+  const billed   = results.filter(r => !r.isDup);
+  const dups     = results.filter(r => r.isDup);
+  const ctCount  = billed.filter(r => r.type === 'CT').length;
+  const mriCount = billed.filter(r => r.type === 'MRI').length;
+  const total    = billed.reduce((s,r) => s + r.comp, 0);
+
+  document.getElementById('sCases').textContent  = billed.length.toLocaleString();
+  document.getElementById('sCT').textContent      = ctCount.toLocaleString();
+  document.getElementById('sCTAmt').textContent   = fmtCurrency(ctCount * RATE_CT);
+  document.getElementById('sMRI').textContent     = mriCount.toLocaleString();
+  document.getElementById('sMRIAmt').textContent  = fmtCurrency(mriCount * RATE_MRI);
+  document.getElementById('sTotal').textContent   = fmtCurrency(total);
+
+  if (dups.length) {
+    document.getElementById('dupNoticeMsg').textContent =
+      dups.length + ' duplicate accession' + (dups.length > 1 ? 's' : '') +
+      ' detected and excluded from billing: ' +
+      dups.slice(0, 6).map(d => d.accession).join(', ') +
+      (dups.length > 6 ? ` … and ${dups.length - 6} more.` : '.');
+    document.getElementById('dupNotice').classList.remove('hidden');
+  }
+
+  // Build table header
+  document.getElementById('tableHead').innerHTML = `<tr>
+    <th>#</th><th>Accession</th><th>Scan Date</th><th>Procedure</th>
+    <th>Status</th><th>Hospital</th><th>Read Date</th><th>Type</th><th>Compensation</th>
+  </tr>`;
+
+  renderTable();
+}
+
+function renderTable() {
+  const search = document.getElementById('searchBox').value.toLowerCase();
+  const tbody  = document.getElementById('tableBody');
+  const tfoot  = document.getElementById('tableFoot');
+  tbody.innerHTML = '';
+
+  let shown = 0, shownComp = 0;
+
+  results.forEach(r => {
+    const matchFilter =
+      activeFilter === 'all' ? true :
+      activeFilter === 'CT'  ? (r.type === 'CT'  && !r.isDup) :
+      activeFilter === 'MRI' ? (r.type === 'MRI' && !r.isDup) :
+      activeFilter === 'dup' ? r.isDup : true;
+
+    const matchSearch = !search ||
+      r.accession.toLowerCase().includes(search) ||
+      r.procedure.toLowerCase().includes(search) ||
+      r.hospital.toLowerCase().includes(search) ||
+      r.date.toLowerCase().includes(search);
+
+    if (!matchFilter || !matchSearch) return;
+
+    shown++;
+    if (!r.isDup) shownComp += r.comp;
+
+    const typeBadge = r.isDup
+      ? '<span class="badge badge-dup"><span class="badge-dot" style="background:var(--red)"></span>DUP</span>'
+      : r.type === 'CT'
+        ? '<span class="badge badge-ct"><span class="badge-dot"></span>CT</span>'
+        : r.type === 'MRI'
+          ? '<span class="badge badge-mri"><span class="badge-dot"></span>MRI</span>'
+          : '<span style="color:var(--text-faint);font-family:var(--mono);font-size:11px;">—</span>';
+
+    const compCell = r.isDup
+      ? '<span style="color:var(--text-faint);font-family:var(--mono);">—</span>'
+      : `<span class="comp-cell">${fmtCurrency(r.comp)}</span>`;
+
+    const tr = document.createElement('tr');
+    if (r.isDup) tr.style.background = '#FFF8F8';
+    tr.innerHTML = `
+      <td style="color:var(--text-faint);font-family:var(--mono);font-size:11px;">${r.rowNum}</td>
+      <td style="font-family:var(--mono);font-size:12px;">${r.accession || '—'}</td>
+      <td style="color:var(--text-muted);white-space:nowrap;">${r.date || '—'}</td>
+      <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r.procedure}">${r.procedure}</td>
+      <td style="color:var(--text-muted);font-size:12px;">${r.status || '—'}</td>
+      <td style="color:var(--text-muted);font-size:12px;">${r.hospital || '—'}</td>
+      <td style="color:var(--text-muted);white-space:nowrap;">${r.readDate || '—'}</td>
+      <td>${typeBadge}</td>
+      <td>${compCell}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  // Total footer row
+  tfoot.innerHTML = `<tr class="total-row">
+    <td colspan="8" style="text-align:right;letter-spacing:0.04em;">TOTAL &mdash; ${shown.toLocaleString()} case${shown!==1?'s':''} shown</td>
+    <td class="comp-cell">${fmtCurrency(shownComp)}</td>
+  </tr>`;
+}
+
+function setFilter(f) {
+  activeFilter = f;
+  ['fAll','fCT','fMRI','fDups'].forEach(id => document.getElementById(id).classList.remove('active'));
+  const map = {all:'fAll',CT:'fCT',MRI:'fMRI',dup:'fDups'};
+  document.getElementById(map[f]).classList.add('active');
+  renderTable();
+}
+
+// ── Download session report ────────────────────────────────────────────────
+function downloadReport() {
+  const wb = XLSX.utils.book_new();
+  const billed = results.filter(r => !r.isDup);
+  const dups   = results.filter(r => r.isDup);
+  const ctCount  = billed.filter(r => r.type === 'CT').length;
+  const mriCount = billed.filter(r => r.type === 'MRI').length;
+  const total    = billed.reduce((s,r) => s + r.comp, 0);
+  const period   = new Date().toLocaleDateString('en-US', {month:'long', year:'numeric'});
+
+  // Sheet 1: Billed cases
+  const hdrs = ['Scan Date','Procedure','Accession','Status','Physician','Hospital','Read Date','Type','Compensation'];
+  const rows = billed.map(r => [
+    r.date, r.procedure, r.accession, r.status, 'Verlare, Jordan', r.hospital, r.readDate, r.type, r.comp
+  ]);
+  // Blank row then total
+  rows.push(new Array(9).fill(''));
+  const totRow = new Array(9).fill('');
+  totRow[7] = 'TOTAL'; totRow[8] = total;
+  rows.push(totRow);
+
+  const ws1 = XLSX.utils.aoa_to_sheet([hdrs, ...rows]);
+  ws1['!cols'] = [{wch:14},{wch:46},{wch:14},{wch:14},{wch:18},{wch:26},{wch:14},{wch:8},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, ws1, 'Billed Cases');
+
+  // Sheet 2: Summary
+  const sumRows = [
+    ['Dr. Jordan Verlare, DO — Billing Report'],
+    ['Period:', period],
+    ['Generated:', new Date().toLocaleString()],
+    [],
+    ['', 'Cases', 'Rate', 'Amount'],
+    ['CT Reads',  ctCount,  '$' + RATE_CT,  ctCount  * RATE_CT],
+    ['MRI Reads', mriCount, '$' + RATE_MRI, mriCount * RATE_MRI],
+    [],
+    ['TOTAL', billed.length, '', total],
+    [],
+    ['Duplicates excluded:', dups.length],
+  ];
+  const ws2 = XLSX.utils.aoa_to_sheet(sumRows);
+  ws2['!cols'] = [{wch:26},{wch:12},{wch:10},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Summary');
+
+  // Sheet 3: Duplicates (if any)
+  if (dups.length) {
+    const dHdrs = ['Scan Date','Procedure','Accession','Status','Note'];
+    const dRows = dups.map(r => [r.date, r.procedure, r.accession, r.status, 'Duplicate — already billed in a prior period']);
+    const ws3 = XLSX.utils.aoa_to_sheet([dHdrs, ...dRows]);
+    ws3['!cols'] = [{wch:14},{wch:46},{wch:14},{wch:14},{wch:40}];
+    XLSX.utils.book_append_sheet(wb, ws3, 'Duplicates Excluded');
+  }
+
+  const dateStr = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `Verlare_Billing_${dateStr}.xlsx`);
+}
+
+// ── Download all-time report ───────────────────────────────────────────────
+function downloadAllTime() {
+  const recs  = loadRecs();
+  const stats = loadStats();
+  if (!recs.length) { alert('No records stored yet. Process a file first.'); return; }
+
+  const wb = XLSX.utils.book_new();
+
+  // All cases sheet
+  const hdrs = ['Scan Date','Read Date','Procedure','Accession','Status','Hospital','Type','Compensation ($)','Saved At','File Name'];
+  const rows = recs.map(r => [r.date, r.readDate, r.procedure, r.accession, r.status, r.hospital, r.type, r.compensation, r.savedAt, r.fileName||'']);
+  const total = recs.reduce((s,r) => s + (r.compensation||0), 0);
+  rows.push(new Array(10).fill(''));
+  const totRow = new Array(10).fill('');
+  totRow[6] = 'TOTAL'; totRow[7] = total;
+  rows.push(totRow);
+
+  const ws1 = XLSX.utils.aoa_to_sheet([hdrs, ...rows]);
+  ws1['!cols'] = [{wch:14},{wch:14},{wch:46},{wch:14},{wch:14},{wch:26},{wch:8},{wch:16},{wch:24},{wch:28}];
+  XLSX.utils.book_append_sheet(wb, ws1, 'All Cases');
+
+  // Summary sheet
+  const sumRows = [
+    ['Dr. Jordan Verlare, DO — All-Time Billing Report'],
+    ['Generated:', new Date().toLocaleString()],
+    [],
+    ['Total cases billed:', stats.cases],
+    ['CT reads:',           stats.ct,  '$' + RATE_CT,  stats.ct  * RATE_CT],
+    ['MRI reads:',          stats.mri, '$' + RATE_MRI, stats.mri * RATE_MRI],
+    ['Total earnings:',     '', '', stats.earnings],
+  ];
+  const ws2 = XLSX.utils.aoa_to_sheet(sumRows);
+  ws2['!cols'] = [{wch:24},{wch:12},{wch:10},{wch:16}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Summary');
+
+  XLSX.writeFile(wb, `Verlare_AllTime_Report_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+// ── Steps UI ───────────────────────────────────────────────────────────────
+function setStep(n) {
+  [1,2].forEach(i => {
+    const el = document.getElementById('step'+i);
+    if (!el) return;
+    el.classList.remove('active','done');
+    if (i < n) el.classList.add('done');
+    else if (i === n) el.classList.add('active');
+  });
+}
+
+// ── Reset ──────────────────────────────────────────────────────────────────
+function resetAll() {
+  rawHeaders = []; rawRows = []; results = []; activeFilter = 'all';
+  document.getElementById('fileInput').value = '';
+  const sb = document.getElementById('searchBox'); if (sb) sb.value = '';
+  document.getElementById('uploadSection').classList.remove('hidden');
+  document.getElementById('instructionsBox').classList.remove('hidden');
+  document.getElementById('resultsSection').classList.add('hidden');
+  document.getElementById('uploadErr').classList.add('hidden');
+  document.getElementById('dupNotice').classList.add('hidden');
+  ['undoAccordion','clearAccordion'].forEach(id => document.getElementById(id).classList.remove('open'));
+  ['undoArrow','clearArrow'].forEach(id => document.getElementById(id).classList.remove('open'));
+  setStep(1);
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  setupDrop();
+  updateHistoryBar();
+});
+</script>
+
+</body>
+</html>
