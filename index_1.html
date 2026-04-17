@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RadBilling — Dr. Jordan Verlare</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #F5F3EE; --surface: #FFFFFF; --surface2: #EDEAE3; --border: #D8D4CB;
+    --text: #1A1916; --text-muted: #6B6860; --text-faint: #A09D97;
+    --accent: #1A3A2A; --accent-light: #E8F0EB;
+    --green: #2D6A4F; --green-bg: #EAF4EE; --green-border: #A8D5B5;
+    --amber: #92650A; --amber-bg: #FDF3DC; --amber-border: #E8C97A;
+    --red: #9B2626; --red-bg: #FCEAEA; --red-border: #F0BBBB;
+    --blue: #1A3A6B; --blue-bg: #E8EEF8;
+    --mono: 'DM Mono', monospace; --serif: 'Instrument Serif', serif; --sans: 'DM Sans', sans-serif;
+    --radius: 10px; --radius-sm: 6px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+  }
+  body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; font-size: 15px; line-height: 1.6; }
+
+  /* HEADER */
+  header { background: var(--accent); color: white; padding: 0 40px; display: flex; align-items: center; justify-content: space-between; height: 60px; position: sticky; top: 0; z-index: 100; }
+  .logo-name { font-family: var(--serif); font-size: 22px; letter-spacing: -0.3px; }
+  .header-right { font-family: var(--mono); font-size: 11px; opacity: 0.5; letter-spacing: 0.05em; }
+
+  /* NAV TABS */
+  .nav-tabs { display: flex; gap: 4px; }
+  .nav-tab { background: none; border: none; color: rgba(255,255,255,0.55); font-family: var(--mono); font-size: 12px; padding: 6px 14px; border-radius: 6px; cursor: pointer; transition: all 0.15s; letter-spacing: 0.04em; }
+  .nav-tab:hover { color: white; background: rgba(255,255,255,0.1); }
+  .nav-tab.active { color: white; background: rgba(255,255,255,0.18); }
+
+  main { max-width: 960px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  /* CARDS */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px 28px; margin-bottom: 20px; box-shadow: var(--shadow); }
+  .card-title { font-size: 12px; font-family: var(--mono); color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 16px; }
+
+  /* UPLOAD */
+  .upload-zone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 48px 32px; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; background: var(--bg); }
+  .upload-zone:hover, .upload-zone.dragover { border-color: var(--accent); background: var(--accent-light); }
+  .upload-zone input { display: none; }
+  .upload-icon { width: 48px; height: 48px; background: var(--accent-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; font-size: 20px; }
+  .upload-zone h3 { font-size: 15px; font-weight: 500; margin-bottom: 5px; }
+  .upload-zone p { font-size: 13px; color: var(--text-muted); }
+  .file-types { display: flex; justify-content: center; gap: 8px; margin-top: 14px; }
+  .file-chip { font-family: var(--mono); font-size: 11px; padding: 3px 8px; border-radius: 4px; background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); }
+
+  /* BUTTONS */
+  .btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; font-family: var(--sans); font-size: 13px; font-weight: 500; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; transition: all 0.15s; }
+  .btn:hover { background: var(--surface2); border-color: var(--text-muted); }
+  .btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
+  .btn-primary:hover { opacity: 0.88; }
+  .btn-green { background: var(--green); color: white; border-color: var(--green); }
+  .btn-green:hover { opacity: 0.88; }
+  .btn-amber { background: var(--amber-bg); color: var(--amber); border-color: var(--amber-border); }
+  .btn-amber:hover { background: #F5E8B8; }
+  .btn-danger { background: var(--red-bg); color: var(--red); border-color: var(--red-border); }
+  .btn-danger:hover { background: #F7DADA; }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn:disabled { opacity: 0.38; cursor: not-allowed; }
+  .btn-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  /* STATS */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  .stats-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); }
+  .stat-card.amber { border-color: var(--amber-border); background: var(--amber-bg); }
+  .stat-card.green { border-color: var(--green-border); background: var(--green-bg); }
+  .stat-label { font-size: 10px; font-family: var(--mono); color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 5px; }
+  .stat-card.amber .stat-label { color: var(--amber); opacity: 0.7; }
+  .stat-card.green .stat-label { color: var(--green); opacity: 0.7; }
+  .stat-val { font-size: 24px; font-weight: 600; font-family: var(--mono); color: var(--text); line-height: 1; }
+  .stat-val.green { color: var(--green); }
+  .stat-val.amber { color: var(--amber); }
+  .stat-val.blue { color: var(--blue); }
+  .stat-sub { font-size: 11px; font-family: var(--mono); color: var(--text-muted); margin-top: 4px; }
+
+  /* BATCH CARDS */
+  .batch-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; box-shadow: var(--shadow); overflow: hidden; transition: box-shadow 0.15s; }
+  .batch-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.10); }
+  .batch-card.pending { border-left: 4px solid var(--amber); }
+  .batch-card.paid { border-left: 4px solid var(--green); }
+  .batch-header { padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; }
+  .batch-header:hover { background: var(--bg); }
+  .batch-meta { flex: 1; }
+  .batch-filename { font-weight: 500; font-size: 14px; color: var(--text); margin-bottom: 3px; }
+  .batch-date { font-size: 12px; font-family: var(--mono); color: var(--text-faint); }
+  .batch-amounts { display: flex; gap: 20px; align-items: center; flex-shrink: 0; }
+  .batch-amount { font-family: var(--mono); font-weight: 600; font-size: 16px; }
+  .batch-amount.amber { color: var(--amber); }
+  .batch-amount.green { color: var(--green); }
+  .batch-count { font-size: 12px; font-family: var(--mono); color: var(--text-muted); }
+  .batch-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+  .batch-status-pill { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-family: var(--mono); font-weight: 500; }
+  .batch-status-pill.pending { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+  .batch-status-pill.paid { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+  .batch-chevron { font-size: 11px; color: var(--text-faint); transition: transform 0.2s; margin-left: 4px; }
+  .batch-chevron.open { transform: rotate(90deg); }
+  .batch-body { display: none; border-top: 1px solid var(--border); padding: 0; }
+  .batch-body.open { display: block; }
+
+  /* TABLE */
+  .table-controls { display: flex; gap: 8px; align-items: center; padding: 12px 16px; background: var(--surface2); flex-wrap: wrap; }
+  .search-wrap { flex: 1; min-width: 180px; position: relative; }
+  .search-wrap input { width: 100%; padding: 7px 10px 7px 32px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: var(--sans); font-size: 13px; color: var(--text); background: var(--bg); outline: none; }
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-wrap::before { content: '🔍'; position: absolute; left: 9px; top: 50%; transform: translateY(-50%); font-size: 12px; pointer-events: none; }
+  .filter-group { display: flex; gap: 3px; }
+  .filter-btn { padding: 5px 10px; font-size: 11px; font-family: var(--mono); border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
+  .filter-btn:hover { border-color: var(--text-muted); color: var(--text); }
+  .filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .table-wrap { overflow-x: auto; }
+  .results-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .results-table thead { background: var(--surface2); border-bottom: 1px solid var(--border); }
+  .results-table th { text-align: left; padding: 9px 14px; font-family: var(--mono); font-size: 10px; font-weight: 500; color: var(--text-muted); letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; }
+  .results-table td { padding: 9px 14px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
+  .results-table tbody tr:last-child td { border-bottom: none; }
+  .results-table tbody tr:hover td { background: var(--bg); }
+  .results-table tfoot td { background: var(--accent); color: white; font-family: var(--mono); font-weight: 600; font-size: 12px; padding: 10px 14px; border: none; }
+
+  /* BADGES */
+  .badge { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 4px; font-size: 10px; font-family: var(--mono); font-weight: 500; }
+  .badge-dot { width: 4px; height: 4px; border-radius: 50%; }
+  .badge-ct { background: var(--blue-bg); color: var(--blue); }
+  .badge-ct .badge-dot { background: var(--blue); }
+  .badge-mri { background: var(--green-bg); color: var(--green); }
+  .badge-mri .badge-dot { background: var(--green); }
+  .badge-dup { background: var(--red-bg); color: var(--red); }
+
+  /* BATCH FOOTER ACTIONS */
+  .batch-footer { padding: 14px 20px; background: var(--bg); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  .batch-footer-left { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  /* NOTICES */
+  .notice { background: var(--amber-bg); border: 1px solid var(--amber-border); border-radius: var(--radius-sm); padding: 10px 14px; font-size: 12px; color: var(--amber); margin-bottom: 14px; }
+  .notice-green { background: var(--green-bg); border-color: var(--green-border); color: var(--green); }
+
+  /* SECTION HEADERS */
+  .section-label { font-size: 11px; font-family: var(--mono); color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; margin-top: 28px; padding-bottom: 8px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .section-label:first-child { margin-top: 0; }
+  .section-count { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 1px 8px; font-size: 11px; font-family: var(--mono); color: var(--text-muted); }
+
+  /* EMPTY STATES */
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--text-faint); }
+  .empty-state-icon { font-size: 32px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+
+  /* COMP CELL */
+  .comp-cell { font-family: var(--mono); font-weight: 600; color: var(--green); }
+
+  /* ACCORDION */
+  .accordion-trigger { background: none; border: none; cursor: pointer; font-size: 12px; font-family: var(--mono); color: var(--text-muted); display: flex; align-items: center; gap: 8px; padding: 8px 0; width: 100%; text-align: left; }
+  .accordion-trigger:hover { color: var(--text); }
+  .accordion-arrow { display: inline-block; transition: transform 0.2s; font-size: 10px; }
+  .accordion-arrow.open { transform: rotate(90deg); }
+  .accordion-body { display: none; }
+  .accordion-body.open { display: block; padding-top: 10px; }
+
+  /* RESULTS PAGE SPECIFICS */
+  .results-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+  .results-filename { font-family: var(--mono); font-size: 12px; color: var(--text-muted); background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 3px 10px; }
+
+  /* UTILITY */
+  .hidden { display: none !important; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .animate-in { animation: fadeUp 0.3s ease both; }
+
+  footer { text-align: center; padding: 28px; font-size: 11px; font-family: var(--mono); color: var(--text-faint); border-top: 1px solid var(--border); }
+
+  @media (max-width: 640px) {
+    main { padding: 24px 16px 60px; }
+    header { padding: 0 16px; }
+    .stats-grid { grid-template-columns: repeat(2,1fr); }
+    .stats-grid-2 { grid-template-columns: 1fr; }
+    .batch-amounts { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo-name">RadBilling</span>
+  <nav class="nav-tabs">
+    <button class="nav-tab active" id="tabDashboard" onclick="showPage('dashboard')">Dashboard</button>
+    <button class="nav-tab" id="tabUpload" onclick="showPage('upload')">New Upload</button>
+  </nav>
+  <span class="header-right">Dr. Jordan Verlare</span>
+</header>
+
+<main>
+
+  <!-- ══════════════════════════════════════════
+       DASHBOARD PAGE
+  ══════════════════════════════════════════ -->
+  <div id="pageDashboard" class="animate-in">
+
+    <!-- Top summary stats -->
+    <div class="stats-grid-2" id="summaryStats" style="margin-bottom:24px;">
+      <div class="stat-card amber">
+        <div class="stat-label">Pending payment</div>
+        <div class="stat-val amber" id="dPendingAmt">$0.00</div>
+        <div class="stat-sub" id="dPendingCount">0 batches</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">Paid all-time</div>
+        <div class="stat-val green" id="dPaidAmt">$0.00</div>
+        <div class="stat-sub" id="dPaidCount">0 cases</div>
+      </div>
+    </div>
+
+    <!-- Pending batches -->
+    <div class="section-label">
+      <span>⏳ Pending payment</span>
+      <span class="section-count" id="pendingCountLabel">0</span>
+    </div>
+    <div id="pendingList"></div>
+
+    <!-- Paid batches -->
+    <div class="section-label" style="margin-top:32px;">
+      <span>✓ Paid</span>
+      <span class="section-count" id="paidCountLabel">0</span>
+    </div>
+    <div id="paidList"></div>
+
+    <!-- All-time download + advanced -->
+    <div class="card" style="margin-top:32px;">
+      <div class="card-title">All-time records</div>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">Download every paid case as a single Excel file — use this for tax season or verification.</p>
+      <button class="btn btn-primary btn-sm" onclick="downloadAllTime()" style="font-family:var(--mono);">↓ Download all-time report</button>
+
+      <hr class="divider">
+      <button class="accordion-trigger" onclick="toggleAcc('dangerBody','dangerArrow')">
+        <span class="accordion-arrow" id="dangerArrow">▶</span>
+        <span style="color:var(--text-faint);">Advanced — clear all history</span>
+      </button>
+      <div class="accordion-body" id="dangerBody">
+        <div style="background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--radius-sm);padding:14px 16px;">
+          <p style="font-size:13px;color:var(--red);font-weight:500;margin-bottom:4px;">⚠ This permanently deletes all history and cannot be undone.</p>
+          <p style="font-size:12px;color:var(--red);margin-bottom:12px;">All pending batches, paid records, accession history, and totals will be erased.</p>
+          <button class="btn btn-danger btn-sm" onclick="confirmClearAll()" style="font-family:var(--mono);">Permanently clear all history</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       UPLOAD PAGE
+  ══════════════════════════════════════════ -->
+  <div id="pageUpload" class="hidden animate-in">
+
+    <div style="margin-bottom:28px;">
+      <h2 style="font-family:var(--serif);font-size:32px;font-weight:400;margin-bottom:8px;">Reads, <em style="color:var(--accent);font-style:italic;">instantly billed.</em></h2>
+      <p style="font-size:15px;color:var(--text-muted);max-width:500px;">Upload your monthly case export and this tool assigns compensation to every CT and MRI read, removes duplicates, and creates a pending batch for payment tracking.</p>
+    </div>
+
+    <div class="card" id="uploadCard">
+      <div class="card-title">Upload case export</div>
+      <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+        <div class="upload-icon">📋</div>
+        <h3>Drop your case file here</h3>
+        <p>Click to browse, or drag and drop</p>
+        <div class="file-types">
+          <span class="file-chip">.xlsx</span>
+          <span class="file-chip">.xls</span>
+          <span class="file-chip">.csv</span>
+        </div>
+      </div>
+      <div id="uploadErr" class="notice hidden" style="margin-top:14px;margin-bottom:0;"></div>
+    </div>
+
+    <!-- Results section (shown after upload) -->
+    <div id="uploadResults" class="hidden animate-in">
+      <div class="results-header">
+        <div>
+          <h3 style="font-size:16px;font-weight:500;margin-bottom:3px;">Results</h3>
+          <span class="results-filename" id="resultsFilename"></span>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" onclick="downloadSessionReport()" style="font-family:var(--mono);">↓ Download report</button>
+          <button class="btn btn-sm" onclick="resetUpload()">Upload different file</button>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">Cases billed</div><div class="stat-val" id="rCases">—</div></div>
+        <div class="stat-card"><div class="stat-label">CT reads</div><div class="stat-val blue" id="rCT">—</div><div class="stat-sub" id="rCTAmt"></div></div>
+        <div class="stat-card"><div class="stat-label">MRI reads</div><div class="stat-val" id="rMRI">—</div><div class="stat-sub" id="rMRIAmt"></div></div>
+        <div class="stat-card"><div class="stat-label">Total</div><div class="stat-val green" id="rTotal">—</div></div>
+      </div>
+
+      <div id="dupNotice" class="notice hidden"></div>
+
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div class="table-controls">
+          <div class="search-wrap"><input type="text" id="searchBox" placeholder="Search accession, procedure…" oninput="filterTable()"></div>
+          <div class="filter-group">
+            <button class="filter-btn active" id="fAll" onclick="setFilter('all')">All</button>
+            <button class="filter-btn" id="fCT" onclick="setFilter('CT')">CT</button>
+            <button class="filter-btn" id="fMRI" onclick="setFilter('MRI')">MRI</button>
+            <button class="filter-btn" id="fDups" onclick="setFilter('dup')">Duplicates</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="results-table">
+            <thead id="tableHead"></thead>
+            <tbody id="tableBody"></tbody>
+            <tfoot id="tableFoot"></tfoot>
+          </table>
+        </div>
+      </div>
+
+      <div style="background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:var(--radius);padding:16px 20px;margin-top:4px;">
+        <p style="font-size:13px;color:var(--amber);font-weight:500;margin-bottom:4px;">This batch will be saved as pending payment</p>
+        <p style="font-size:12px;color:var(--amber);opacity:0.85;">It will appear on your dashboard under "Pending Payment". Mark it as paid once you receive payment. You can replace it with a corrected file before approving.</p>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>RadBilling — All data stored locally in your browser — Nothing is sent to any server</footer>
+
+<script>
+// ── Constants ──────────────────────────────────────────────────────────────
+const RATE_CT  = 35;
+const RATE_MRI = 45;
+const SK_PENDING = 'rb_pending_v3';
+const SK_PAID    = 'rb_paid_v3';
+const SK_ACCS    = 'rb_accs_v3';
+
+// ── State ──────────────────────────────────────────────────────────────────
+let sessionResults  = [];
+let sessionFileName = '';
+let sessionBatchId  = '';
+let activeFilter    = 'all';
+let pendingTimer    = null;
+let expandedBatches = new Set();
+
+// ── Storage ────────────────────────────────────────────────────────────────
+function loadPending() { try { return JSON.parse(localStorage.getItem(SK_PENDING) || '[]'); } catch(e) { return []; } }
+function loadPaid()    { try { return JSON.parse(localStorage.getItem(SK_PAID)    || '[]'); } catch(e) { return []; } }
+function loadAccs()    { try { return new Set(JSON.parse(localStorage.getItem(SK_ACCS)  || '[]')); } catch(e) { return new Set(); } }
+function savePending(d) { localStorage.setItem(SK_PENDING, JSON.stringify(d)); }
+function savePaid(d)    { localStorage.setItem(SK_PAID,    JSON.stringify(d)); }
+function saveAccs(s)    { localStorage.setItem(SK_ACCS,    JSON.stringify([...s])); }
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function fmt(n) { return '$' + Number(n).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+function fmtDate(v) {
+  try {
+    if (!v || v === '') return '';
+    if (v instanceof Date) return v.toLocaleDateString('en-US', {month:'2-digit',day:'2-digit',year:'numeric'});
+    if (typeof v === 'number' && v > 40000) {
+      const d = XLSX.SSF.parse_date_code(v);
+      return (d.m<10?'0':'')+d.m+'/'+(d.d<10?'0':'')+d.d+'/'+d.y;
+    }
+    return String(v);
+  } catch(e) { return String(v); }
+}
+function classify(proc) {
+  const p = String(proc).toUpperCase().trim();
+  if (p.startsWith('CT') || /\bCT\b/.test(p)) return 'CT';
+  if (p.startsWith('MR') || p.includes('MAGNETIC RESONANCE')) return 'MRI';
+  return 'OTHER';
+}
+function detectCol(headers, keys) {
+  for (const k of keys) {
+    const i = headers.findIndex(h => h.toLowerCase().includes(k));
+    if (i >= 0) return i;
+  }
+  return -1;
+}
+function genId() { return 'batch_' + Date.now() + '_' + Math.random().toString(36).slice(2,7); }
+function toggleAcc(bodyId, arrowId) {
+  const b = document.getElementById(bodyId), a = document.getElementById(arrowId);
+  const open = b.classList.toggle('open');
+  a.classList.toggle('open', open);
+}
+
+// ── Page navigation ────────────────────────────────────────────────────────
+function showPage(page) {
+  document.getElementById('pageDashboard').classList.toggle('hidden', page !== 'dashboard');
+  document.getElementById('pageUpload').classList.toggle('hidden', page !== 'upload');
+  document.getElementById('tabDashboard').classList.toggle('active', page === 'dashboard');
+  document.getElementById('tabUpload').classList.toggle('active', page === 'upload');
+  if (page === 'dashboard') renderDashboard();
+}
+
+// ── Dashboard ──────────────────────────────────────────────────────────────
+function renderDashboard() {
+  const pending = loadPending();
+  const paid    = loadPaid();
+
+  // Summary stats
+  const pendingTotal = pending.reduce((s,b) => s + (b.total || 0), 0);
+  const paidTotal    = paid.reduce((s,b)    => s + (b.total || 0), 0);
+  const paidCases    = paid.reduce((s,b)    => s + (b.cases || 0), 0);
+  document.getElementById('dPendingAmt').textContent   = fmt(pendingTotal);
+  document.getElementById('dPendingCount').textContent = pending.length + ' batch' + (pending.length !== 1 ? 'es' : '');
+  document.getElementById('dPaidAmt').textContent      = fmt(paidTotal);
+  document.getElementById('dPaidCount').textContent    = paidCases.toLocaleString() + ' case' + (paidCases !== 1 ? 's' : '');
+  document.getElementById('pendingCountLabel').textContent = pending.length;
+  document.getElementById('paidCountLabel').textContent    = paid.length;
+
+  // Pending list
+  const pendingEl = document.getElementById('pendingList');
+  if (pending.length === 0) {
+    pendingEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>No pending batches — upload a file to get started</p></div>';
+  } else {
+    pendingEl.innerHTML = pending.map(b => renderBatchCard(b, 'pending')).join('');
+  }
+
+  // Paid list
+  const paidEl = document.getElementById('paidList');
+  if (paid.length === 0) {
+    paidEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💳</div><p>No paid batches yet</p></div>';
+  } else {
+    paidEl.innerHTML = paid.map(b => renderBatchCard(b, 'paid')).join('');
+  }
+
+  // Re-attach expansion state
+  expandedBatches.forEach(id => {
+    const body = document.getElementById('batchBody_' + id);
+    const chev = document.getElementById('batchChev_' + id);
+    if (body) { body.classList.add('open'); }
+    if (chev) { chev.classList.add('open'); }
+  });
+}
+
+function renderBatchCard(b, status) {
+  const isPending = status === 'pending';
+  const dateStr   = new Date(b.createdAt).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+  const paidStr   = b.paidAt ? ' · Paid ' + new Date(b.paidAt).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : '';
+
+  const actionsHTML = isPending ? `
+    <span class="batch-status-pill pending">Pending</span>
+    <button class="btn btn-sm btn-green" onclick="event.stopPropagation();markPaid('${b.id}')" title="Mark as paid">✓ Mark paid</button>
+    <button class="btn btn-sm" onclick="event.stopPropagation();replaceFile('${b.id}')" title="Replace with corrected file" style="font-family:var(--mono);">↺ Replace</button>
+    <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deletePending('${b.id}')" title="Delete this batch">🗑</button>
+  ` : `
+    <span class="batch-status-pill paid">Paid</span>
+    <button class="btn btn-sm" onclick="event.stopPropagation();downloadBatchReport('${b.id}')" style="font-family:var(--mono);">↓ Report</button>
+  `;
+
+  const tableHTML = renderBatchTable(b);
+
+  return `
+    <div class="batch-card ${status}" id="batchCard_${b.id}">
+      <div class="batch-header" onclick="toggleBatch('${b.id}')">
+        <div class="batch-meta">
+          <div class="batch-filename">${b.fileName}</div>
+          <div class="batch-date">${dateStr}${paidStr}</div>
+        </div>
+        <div class="batch-amounts">
+          <div>
+            <div class="batch-amount ${isPending ? 'amber' : 'green'}">${fmt(b.total)}</div>
+            <div class="batch-count">${b.cases} case${b.cases !== 1 ? 's' : ''} · ${b.ct} CT · ${b.mri} MRI</div>
+          </div>
+        </div>
+        <div class="batch-actions">${actionsHTML}</div>
+        <span class="batch-chevron" id="batchChev_${b.id}">▶</span>
+      </div>
+      <div class="batch-body" id="batchBody_${b.id}">
+        ${tableHTML}
+        ${isPending ? `
+        <div class="batch-footer">
+          <div class="batch-footer-left">
+            <button class="btn btn-green btn-sm" onclick="markPaid('${b.id}')">✓ Mark as paid — ${fmt(b.total)}</button>
+            <button class="btn btn-sm" onclick="replaceFile('${b.id}')" style="font-family:var(--mono);">↺ Replace with corrected file</button>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="deletePending('${b.id}')">🗑 Remove batch</button>
+        </div>` : `
+        <div class="batch-footer">
+          <button class="btn btn-sm" onclick="downloadBatchReport('${b.id}')" style="font-family:var(--mono);">↓ Download report</button>
+        </div>`}
+      </div>
+    </div>`;
+}
+
+function renderBatchTable(b) {
+  const rows = (b.rows || []).filter(r => !r.isDup);
+  if (!rows.length) return '<div style="padding:20px;text-align:center;color:var(--text-faint);font-size:13px;">No billed cases</div>';
+
+  const trs = rows.map((r, i) => {
+    const typeBadge = r.type === 'CT'
+      ? '<span class="badge badge-ct"><span class="badge-dot"></span>CT</span>'
+      : r.type === 'MRI'
+        ? '<span class="badge badge-mri"><span class="badge-dot"></span>MRI</span>'
+        : '—';
+    return `<tr>
+      <td style="color:var(--text-faint);font-family:var(--mono);font-size:10px;">${r.rowNum}</td>
+      <td style="font-family:var(--mono);font-size:11px;">${r.accession || '—'}</td>
+      <td style="color:var(--text-muted);white-space:nowrap;">${r.date || '—'}</td>
+      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r.procedure}">${r.procedure}</td>
+      <td style="color:var(--text-muted);">${r.status || '—'}</td>
+      <td style="color:var(--text-muted);">${r.hospital || '—'}</td>
+      <td style="color:var(--text-muted);white-space:nowrap;">${r.readDate || '—'}</td>
+      <td>${typeBadge}</td>
+      <td><span class="comp-cell">${fmt(r.comp)}</span></td>
+    </tr>`;
+  }).join('');
+
+  return `<div class="table-wrap"><table class="results-table">
+    <thead><tr>
+      <th>#</th><th>Accession</th><th>Scan Date</th><th>Procedure</th>
+      <th>Status</th><th>Hospital</th><th>Read Date</th><th>Type</th><th>Compensation</th>
+    </tr></thead>
+    <tbody>${trs}</tbody>
+    <tfoot><tr>
+      <td colspan="8" style="text-align:right;">TOTAL — ${rows.length} cases</td>
+      <td style="color:#90EE90;font-weight:600;">${fmt(b.total)}</td>
+    </tr></tfoot>
+  </table></div>`;
+}
+
+function toggleBatch(id) {
+  const body = document.getElementById('batchBody_' + id);
+  const chev = document.getElementById('batchChev_' + id);
+  if (!body) return;
+  const isOpen = body.classList.toggle('open');
+  chev.classList.toggle('open', isOpen);
+  if (isOpen) expandedBatches.add(id);
+  else expandedBatches.delete(id);
+}
+
+// ── Mark as paid ───────────────────────────────────────────────────────────
+function markPaid(batchId) {
+  if (!confirm('Mark this batch as paid? This will permanently add all cases to your all-time records.')) return;
+  const pending = loadPending();
+  const idx     = pending.findIndex(b => b.id === batchId);
+  if (idx < 0) return;
+  const batch   = pending[idx];
+
+  // Add accessions to known set
+  const accs = loadAccs();
+  (batch.rows || []).forEach(r => { if (r.accession && !r.isDup) accs.add(r.accession); });
+  saveAccs(accs);
+
+  // Move to paid
+  batch.paidAt = new Date().toISOString();
+  batch.status = 'paid';
+  const paid = loadPaid();
+  paid.unshift(batch);
+  savePaid(paid);
+
+  // Remove from pending
+  pending.splice(idx, 1);
+  savePending(pending);
+
+  expandedBatches.delete(batchId);
+  renderDashboard();
+}
+
+// ── Delete pending ─────────────────────────────────────────────────────────
+function deletePending(batchId) {
+  if (!confirm('Remove this pending batch? It will be permanently deleted and no cases will be stored.')) return;
+  const pending = loadPending().filter(b => b.id !== batchId);
+  savePending(pending);
+  expandedBatches.delete(batchId);
+  renderDashboard();
+}
+
+// ── Replace file ───────────────────────────────────────────────────────────
+let replacingBatchId = null;
+function replaceFile(batchId) {
+  replacingBatchId = batchId;
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = '.xlsx,.xls,.csv';
+  inp.onchange = e => processFile(e.target.files[0], true);
+  inp.click();
+}
+
+// ── File upload ────────────────────────────────────────────────────────────
+function setupDrop() {
+  const dz = document.getElementById('dropZone');
+  const fi = document.getElementById('fileInput');
+  dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('dragover'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+  dz.addEventListener('drop',      e => { e.preventDefault(); dz.classList.remove('dragover'); processFile(e.dataTransfer.files[0], false); });
+  fi.addEventListener('change',    e => processFile(e.target.files[0], false));
+}
+
+function processFile(file, isReplace) {
+  if (!file) return;
+  const errEl = document.getElementById('uploadErr');
+  errEl.classList.add('hidden');
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb   = XLSX.read(e.target.result, { type: 'array', cellDates: true });
+      const ws   = wb.Sheets[wb.SheetNames[0]];
+      const data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+      if (data.length < 2) throw new Error('File appears empty or has no data rows.');
+      const headers = data[0].map(h => String(h || ''));
+      const rawRows = data.slice(1).filter(r => r.some(c => c !== '' && c !== null));
+      if (!rawRows.length) throw new Error('No data rows found after the header row.');
+
+      const accCol  = detectCol(headers, ['accession','acc #','acc#','acc num','case id']);
+      const procCol = detectCol(headers, ['procedure','exam','study','description','desc','modality','proc']);
+      const dateCol = detectCol(headers, ['scan date','date','dos','service date','exam date']);
+      const rdCol   = detectCol(headers, ['read date','read','finalized','completed']);
+      const statCol = detectCol(headers, ['status','result','report']);
+      const hospCol = detectCol(headers, ['hospital','location','facility','site']);
+
+      if (procCol < 0) throw new Error('Could not find a Procedure/Study Description column. Check your file has a header row.');
+
+      // For duplicate checking: use known accs MINUS any being replaced
+      const knownAccs   = loadAccs();
+      const seenInFile  = new Set();
+
+      // If replacing, also exclude the old batch's accessions from dup check
+      let excludeAccs = new Set();
+      if (isReplace && replacingBatchId) {
+        const oldBatch = loadPending().find(b => b.id === replacingBatchId);
+        if (oldBatch) (oldBatch.rows || []).forEach(r => { if (r.accession) excludeAccs.add(r.accession); });
+      }
+
+      const results = [];
+      rawRows.forEach((row, i) => {
+        const accession = accCol  >= 0 ? String(row[accCol]  || '').trim() : '';
+        const procedure = String(row[procCol] || '').trim();
+        const date      = dateCol >= 0 ? fmtDate(row[dateCol]) : '';
+        const readDate  = rdCol   >= 0 ? fmtDate(row[rdCol])   : '';
+        const status    = statCol >= 0 ? String(row[statCol] || '').trim() : '';
+        const hospital  = hospCol >= 0 ? String(row[hospCol] || '').trim() : '';
+        if (!accession && !procedure) return;
+        const type  = classify(procedure);
+        const inPaidHistory = accession && knownAccs.has(accession) && !excludeAccs.has(accession);
+        const inFile        = accession && seenInFile.has(accession);
+        const isDup = inPaidHistory || inFile;
+        const comp  = isDup ? 0 : (type === 'CT' ? RATE_CT : type === 'MRI' ? RATE_MRI : 0);
+        if (accession) seenInFile.add(accession);
+        results.push({ rowNum: i+2, accession, procedure, date, readDate, status, hospital, type, isDup, comp });
+      });
+
+      sessionResults  = results;
+      sessionFileName = file.name;
+
+      if (isReplace && replacingBatchId) {
+        // Update the existing pending batch
+        const pending = loadPending();
+        const idx = pending.findIndex(b => b.id === replacingBatchId);
+        if (idx >= 0) {
+          const billed  = results.filter(r => !r.isDup);
+          const ct      = billed.filter(r => r.type === 'CT').length;
+          const mri     = billed.filter(r => r.type === 'MRI').length;
+          const total   = billed.reduce((s,r) => s + r.comp, 0);
+          pending[idx].rows     = results;
+          pending[idx].fileName = file.name;
+          pending[idx].cases    = billed.length;
+          pending[idx].ct       = ct;
+          pending[idx].mri      = mri;
+          pending[idx].total    = total;
+          pending[idx].replacedAt = new Date().toISOString();
+          savePending(pending);
+          replacingBatchId = null;
+          renderDashboard();
+          showPage('dashboard');
+          return;
+        }
+      }
+
+      sessionBatchId = genId();
+      showUploadResults(results, file.name);
+      schedulePendingSave();
+
+    } catch(err) {
+      errEl.textContent = '⚠ ' + err.message;
+      errEl.classList.remove('hidden');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ── Show upload results ────────────────────────────────────────────────────
+function showUploadResults(results, fileName) {
+  const billed  = results.filter(r => !r.isDup);
+  const dups    = results.filter(r => r.isDup);
+  const ct      = billed.filter(r => r.type === 'CT').length;
+  const mri     = billed.filter(r => r.type === 'MRI').length;
+  const total   = billed.reduce((s,r) => s + r.comp, 0);
+
+  document.getElementById('rCases').textContent = billed.length.toLocaleString();
+  document.getElementById('rCT').textContent    = ct.toLocaleString();
+  document.getElementById('rCTAmt').textContent = fmt(ct * RATE_CT);
+  document.getElementById('rMRI').textContent   = mri.toLocaleString();
+  document.getElementById('rMRIAmt').textContent= fmt(mri * RATE_MRI);
+  document.getElementById('rTotal').textContent = fmt(total);
+  document.getElementById('resultsFilename').textContent = fileName;
+
+  const dupEl = document.getElementById('dupNotice');
+  if (dups.length) {
+    dupEl.textContent = '⚠ ' + dups.length + ' duplicate accession' + (dups.length > 1 ? 's' : '') + ' excluded: ' + dups.slice(0,6).map(d=>d.accession).join(', ') + (dups.length > 6 ? ` … and ${dups.length-6} more.` : '.');
+    dupEl.classList.remove('hidden');
+  } else {
+    dupEl.classList.add('hidden');
+  }
+
+  document.getElementById('tableHead').innerHTML = `<tr>
+    <th>#</th><th>Accession</th><th>Scan Date</th><th>Procedure</th>
+    <th>Status</th><th>Hospital</th><th>Read Date</th><th>Type</th><th>Compensation</th>
+  </tr>`;
+  activeFilter = 'all';
+  renderTable();
+  document.getElementById('uploadResults').classList.remove('hidden');
+}
+
+// ── Table render ───────────────────────────────────────────────────────────
+function renderTable() {
+  const search = (document.getElementById('searchBox').value || '').toLowerCase();
+  const tbody  = document.getElementById('tableBody');
+  const tfoot  = document.getElementById('tableFoot');
+  tbody.innerHTML = '';
+  let shown = 0, shownComp = 0;
+
+  sessionResults.forEach(r => {
+    const matchFilter =
+      activeFilter === 'all' ? true :
+      activeFilter === 'CT'  ? (r.type === 'CT' && !r.isDup) :
+      activeFilter === 'MRI' ? (r.type === 'MRI' && !r.isDup) :
+      activeFilter === 'dup' ? r.isDup : true;
+    const matchSearch = !search ||
+      r.accession.toLowerCase().includes(search) ||
+      r.procedure.toLowerCase().includes(search) ||
+      (r.hospital || '').toLowerCase().includes(search);
+    if (!matchFilter || !matchSearch) return;
+    shown++; if (!r.isDup) shownComp += r.comp;
+
+    const typeBadge = r.isDup
+      ? '<span class="badge badge-dup">DUP</span>'
+      : r.type === 'CT'  ? '<span class="badge badge-ct"><span class="badge-dot"></span>CT</span>'
+      : r.type === 'MRI' ? '<span class="badge badge-mri"><span class="badge-dot"></span>MRI</span>'
+      : '<span style="color:var(--text-faint)">—</span>';
+    const compCell = r.isDup
+      ? '<span style="color:var(--text-faint);font-family:var(--mono)">—</span>'
+      : `<span class="comp-cell">${fmt(r.comp)}</span>`;
+
+    const tr = document.createElement('tr');
+    if (r.isDup) tr.style.background = '#FFF8F8';
+    tr.innerHTML = `
+      <td style="color:var(--text-faint);font-family:var(--mono);font-size:10px;">${r.rowNum}</td>
+      <td style="font-family:var(--mono);font-size:11px;">${r.accession || '—'}</td>
+      <td style="color:var(--text-muted);white-space:nowrap;">${r.date || '—'}</td>
+      <td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r.procedure}">${r.procedure}</td>
+      <td style="color:var(--text-muted);font-size:11px;">${r.status || '—'}</td>
+      <td style="color:var(--text-muted);font-size:11px;">${r.hospital || '—'}</td>
+      <td style="color:var(--text-muted);white-space:nowrap;">${r.readDate || '—'}</td>
+      <td>${typeBadge}</td>
+      <td>${compCell}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  tfoot.innerHTML = `<tr>
+    <td colspan="8" style="text-align:right;letter-spacing:0.04em;">TOTAL — ${shown.toLocaleString()} case${shown!==1?'s':''} shown</td>
+    <td style="color:#90EE90;font-weight:600;">${fmt(shownComp)}</td>
+  </tr>`;
+}
+
+function setFilter(f) {
+  activeFilter = f;
+  ['fAll','fCT','fMRI','fDups'].forEach(id => document.getElementById(id).classList.remove('active'));
+  const map = {all:'fAll',CT:'fCT',MRI:'fMRI',dup:'fDups'};
+  document.getElementById(map[f]).classList.add('active');
+  renderTable();
+}
+function filterTable() { renderTable(); }
+
+// ── Auto-save to pending after 10 minutes ─────────────────────────────────
+function schedulePendingSave() {
+  if (pendingTimer) clearTimeout(pendingTimer);
+  pendingTimer = setTimeout(() => saveToPending(), 10 * 60 * 1000);
+  // Also save immediately when user navigates away
+  window.onbeforeunload = () => { saveToPending(); };
+}
+
+function saveToPending() {
+  if (!sessionResults.length || !sessionBatchId) return;
+  const pending = loadPending();
+  if (pending.find(b => b.id === sessionBatchId)) return; // already saved
+
+  const billed = sessionResults.filter(r => !r.isDup);
+  const ct     = billed.filter(r => r.type === 'CT').length;
+  const mri    = billed.filter(r => r.type === 'MRI').length;
+  const total  = billed.reduce((s,r) => s + r.comp, 0);
+
+  pending.unshift({
+    id: sessionBatchId,
+    fileName: sessionFileName,
+    createdAt: new Date().toISOString(),
+    status: 'pending',
+    cases: billed.length,
+    ct, mri, total,
+    rows: sessionResults,
+  });
+  savePending(pending);
+  window.onbeforeunload = null;
+}
+
+// ── Download session report ────────────────────────────────────────────────
+function downloadSessionReport() {
+  const billed   = sessionResults.filter(r => !r.isDup);
+  const dups     = sessionResults.filter(r => r.isDup);
+  const ctCount  = billed.filter(r => r.type === 'CT').length;
+  const mriCount = billed.filter(r => r.type === 'MRI').length;
+  const total    = billed.reduce((s,r) => s + r.comp, 0);
+  buildAndDownloadXLSX(billed, dups, ctCount, mriCount, total, sessionFileName);
+}
+
+function downloadBatchReport(batchId) {
+  const all   = [...loadPending(), ...loadPaid()];
+  const batch = all.find(b => b.id === batchId);
+  if (!batch) return;
+  const billed   = (batch.rows || []).filter(r => !r.isDup);
+  const dups     = (batch.rows || []).filter(r => r.isDup);
+  const ctCount  = billed.filter(r => r.type === 'CT').length;
+  const mriCount = billed.filter(r => r.type === 'MRI').length;
+  const total    = billed.reduce((s,r) => s + r.comp, 0);
+  buildAndDownloadXLSX(billed, dups, ctCount, mriCount, total, batch.fileName);
+}
+
+function buildAndDownloadXLSX(billed, dups, ctCount, mriCount, total, fileName) {
+  const wb     = XLSX.utils.book_new();
+  const period = new Date().toLocaleDateString('en-US', {month:'long', year:'numeric'});
+  const hdrs   = ['Scan Date','Procedure','Accession','Status','Physician','Hospital','Read Date','Type','Compensation'];
+  const rows   = billed.map(r => [r.date, r.procedure, r.accession, r.status, 'Verlare, Jordan', r.hospital, r.readDate, r.type, r.comp]);
+  rows.push(new Array(9).fill(''));
+  const tot = new Array(9).fill(''); tot[7]='TOTAL'; tot[8]=total; rows.push(tot);
+  const ws1 = XLSX.utils.aoa_to_sheet([hdrs, ...rows]);
+  ws1['!cols'] = [{wch:14},{wch:46},{wch:14},{wch:14},{wch:18},{wch:26},{wch:14},{wch:8},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, ws1, 'Billed Cases');
+
+  const sumRows = [
+    ['Dr. Jordan Verlare — Billing Report'], ['Period:', period], ['Generated:', new Date().toLocaleString()], [],
+    ['','Cases','Rate','Amount'],
+    ['CT Reads', ctCount, '$'+RATE_CT, ctCount*RATE_CT],
+    ['MRI Reads', mriCount, '$'+RATE_MRI, mriCount*RATE_MRI], [],
+    ['TOTAL', billed.length, '', total], [],
+    ['Duplicates excluded:', dups.length],
+  ];
+  const ws2 = XLSX.utils.aoa_to_sheet(sumRows);
+  ws2['!cols'] = [{wch:26},{wch:12},{wch:10},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Summary');
+
+  if (dups.length) {
+    const ws3 = XLSX.utils.aoa_to_sheet([['Scan Date','Procedure','Accession','Status','Note'],...dups.map(r=>[r.date,r.procedure,r.accession,r.status,'Duplicate — excluded'])]);
+    ws3['!cols'] = [{wch:14},{wch:46},{wch:14},{wch:14},{wch:36}];
+    XLSX.utils.book_append_sheet(wb, ws3, 'Duplicates Excluded');
+  }
+  XLSX.writeFile(wb, 'Verlare_Billing_' + new Date().toISOString().slice(0,10) + '.xlsx');
+}
+
+// ── Download all-time (paid only) ──────────────────────────────────────────
+function downloadAllTime() {
+  const paid = loadPaid();
+  if (!paid.length) { alert('No paid records yet. Mark a batch as paid first.'); return; }
+  const wb   = XLSX.utils.book_new();
+  const allRows = [];
+  paid.forEach(b => {
+    (b.rows || []).filter(r => !r.isDup).forEach(r => {
+      allRows.push([r.date, r.readDate, r.procedure, r.accession, r.status, r.hospital, r.type, r.comp, b.fileName, b.paidAt ? new Date(b.paidAt).toLocaleDateString() : '']);
+    });
+  });
+  const total = allRows.reduce((s,r) => s + (r[7]||0), 0);
+  allRows.push(new Array(10).fill(''));
+  const tot = new Array(10).fill(''); tot[6]='TOTAL'; tot[7]=total; allRows.push(tot);
+  const hdrs = ['Scan Date','Read Date','Procedure','Accession','Status','Hospital','Type','Compensation ($)','File Name','Date Paid'];
+  const ws1  = XLSX.utils.aoa_to_sheet([hdrs, ...allRows]);
+  ws1['!cols'] = [{wch:14},{wch:14},{wch:46},{wch:14},{wch:14},{wch:26},{wch:8},{wch:16},{wch:28},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, ws1, 'All Paid Cases');
+
+  const totalCases = paid.reduce((s,b) => s+(b.cases||0), 0);
+  const totalCT    = paid.reduce((s,b) => s+(b.ct||0), 0);
+  const totalMRI   = paid.reduce((s,b) => s+(b.mri||0), 0);
+  const sumRows = [
+    ['Dr. Jordan Verlare — All-Time Paid Billing Report'],
+    ['Generated:', new Date().toLocaleString()], [],
+    ['Total cases paid:', totalCases],
+    ['CT reads:', totalCT, '$'+RATE_CT, totalCT*RATE_CT],
+    ['MRI reads:', totalMRI, '$'+RATE_MRI, totalMRI*RATE_MRI],
+    ['Total earnings:', '', '', total],
+  ];
+  const ws2 = XLSX.utils.aoa_to_sheet(sumRows);
+  ws2['!cols'] = [{wch:28},{wch:14},{wch:10},{wch:16}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Summary');
+  XLSX.writeFile(wb, 'Verlare_AllTime_' + new Date().toISOString().slice(0,10) + '.xlsx');
+}
+
+// ── Reset upload page ──────────────────────────────────────────────────────
+function resetUpload() {
+  if (pendingTimer) clearTimeout(pendingTimer);
+  saveToPending(); // save whatever was there before resetting
+  sessionResults = []; sessionFileName = ''; sessionBatchId = '';
+  document.getElementById('fileInput').value = '';
+  document.getElementById('uploadResults').classList.add('hidden');
+  document.getElementById('uploadErr').classList.add('hidden');
+  document.getElementById('dupNotice').classList.add('hidden');
+  activeFilter = 'all';
+}
+
+// ── Clear all ──────────────────────────────────────────────────────────────
+function confirmClearAll() {
+  if (!confirm('Permanently clear ALL history — pending batches, paid records, and accession data? This cannot be undone.')) return;
+  [SK_PENDING, SK_PAID, SK_ACCS].forEach(k => localStorage.removeItem(k));
+  renderDashboard();
+  alert('All history cleared.');
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  setupDrop();
+  renderDashboard();
+});
+</script>
+</body>
+</html>
