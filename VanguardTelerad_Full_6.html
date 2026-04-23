@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vanguard Telerad — Billing Platform</title>
+<!-- xlsx loaded inline below -->
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8f7f4;color:#1a1a1a;font-size:13px}
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0f172a}
+.login-card{background:#fff;border-radius:16px;padding:40px;width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+.login-logo{font-size:20px;font-weight:700;color:#0f172a;margin-bottom:4px}
+.login-sub{font-size:12px;color:#888;margin-bottom:28px}
+/* APP */
+.app{display:flex;height:100vh}
+.sidebar{width:210px;background:#0f172a;display:flex;flex-direction:column;flex-shrink:0}
+.logo-area{padding:18px 16px 12px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.logo-name{font-size:15px;font-weight:700;color:#fff}
+.logo-sub2{font-size:9px;color:rgba(255,255,255,0.35);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px}
+.yr-row{display:flex;align-items:center;gap:4px;margin-top:8px;flex-wrap:wrap}
+.yr-btn{background:rgba(255,255,255,0.08);border:0.5px solid rgba(255,255,255,0.15);border-radius:5px;color:#fff;font-size:11px;font-weight:500;padding:3px 7px;cursor:pointer}
+.yr-btn.active{background:rgba(255,255,255,0.2);border-color:rgba(255,255,255,0.35)}
+.yr-add{background:transparent;border:0.5px dashed rgba(255,255,255,0.2);border-radius:5px;color:rgba(255,255,255,0.4);font-size:11px;padding:3px 6px;cursor:pointer}
+.nav{flex:1;padding:8px}
+.nav-s{font-size:9px;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:2px;padding:9px 10px 3px}
+.ni{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;cursor:pointer;color:rgba(255,255,255,0.5);font-size:12px;margin-bottom:1px;user-select:none;transition:all 0.1s}
+.ni:hover{background:rgba(255,255,255,0.07);color:#fff}
+.ni.active{background:rgba(255,255,255,0.13);color:#fff;font-weight:600}
+.so-area{padding:10px 8px;border-top:1px solid rgba(255,255,255,0.08)}
+.so-btn{width:100%;background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.35);font-size:12px;text-align:left;padding:7px 10px;border-radius:7px;transition:all 0.1s}
+.so-btn:hover{color:#fff;background:rgba(255,255,255,0.07)}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{background:#fff;border-bottom:0.5px solid rgba(0,0,0,0.08);padding:0 22px;height:50px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.tb-title{font-size:13px;font-weight:600}
+.av-circle{width:28px;height:28px;border-radius:50%;background:#e8e6e1;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.content{flex:1;overflow-y:auto;padding:22px}
+.page{display:none}.page.active{display:block}
+/* CARDS */
+.card{background:#fff;border:0.5px solid rgba(0,0,0,0.08);border-radius:12px;margin-bottom:12px}
+.ch{padding:12px 16px;border-bottom:0.5px solid rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.ct{font-size:12px;font-weight:600}
+.cb{padding:16px}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:12px}
+.m{background:#f8f7f4;border-radius:8px;padding:12px}
+.ml{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px}
+.mv{font-size:20px;font-weight:700;line-height:1}
+.ms{font-size:11px;color:#999;margin-top:3px}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:0.5px solid rgba(0,0,0,0.15);background:transparent;color:#1a1a1a;transition:all 0.1s}
+.btn:hover{background:#f0ede8}.btn:active{transform:scale(0.98)}
+.bp{background:#0f172a;color:#fff;border-color:#0f172a}.bp:hover{background:#1e293b}
+.bs{background:#15803d;color:#fff;border-color:#15803d}.bs:hover{background:#166534}
+.bd{background:#dc2626;color:#fff;border-color:#dc2626}.bd:hover{background:#b91c1c}
+.sm{padding:4px 9px;font-size:11px}
+.gh{border-color:transparent}.gh:hover{border-color:rgba(0,0,0,0.12)}
+/* TABLES */
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:8px 14px;font-size:10px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.6px;border-bottom:0.5px solid rgba(0,0,0,0.06);background:#f8f7f4;white-space:nowrap}
+td{padding:9px 14px;border-bottom:0.5px solid rgba(0,0,0,0.05);font-size:12px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafaf8}
+/* PILLS & BADGES */
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:500;white-space:nowrap}
+.pill::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.pg{background:#dcfce7;color:#15803d}.pg::before{background:#15803d}
+.py{background:#fef9c3;color:#a16207}.py::before{background:#a16207}
+.pb{background:#dbeafe;color:#1d4ed8}.pb::before{background:#1d4ed8}
+.pgr{background:#f1f0eb;color:#666}.pgr::before{background:#999}
+.bge{display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600}
+.bb{background:#dbeafe;color:#1d4ed8}.bgr{background:#f1f0eb;color:#555}.bgg{background:#dcfce7;color:#15803d}.bgw{background:#fef9c3;color:#a16207}
+/* FORMS */
+label.fl{display:block;font-size:10px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px}
+input[type=text],input[type=email],input[type=number],input[type=password],select,textarea{width:100%;padding:7px 10px;border:0.5px solid rgba(0,0,0,0.18);border-radius:8px;font-size:12px;background:#fff;color:#1a1a1a;outline:none;font-family:inherit;transition:border 0.1s}
+input:focus,select:focus,textarea:focus{border-color:#0f172a}
+.g2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+/* ALERTS */
+.al{padding:10px 13px;border-radius:8px;font-size:12px;margin-bottom:10px;display:flex;gap:8px;align-items:flex-start;line-height:1.5}
+.as{background:#dcfce7;color:#15803d}.ad{background:#fee2e2;color:#dc2626}.ai{background:#dbeafe;color:#1d4ed8}.aw{background:#fef9c3;color:#a16207}
+/* MISC */
+.tab-bar{display:flex;border-bottom:0.5px solid rgba(0,0,0,0.08);margin-bottom:14px;overflow-x:auto}
+.tab{padding:8px 14px;font-size:12px;cursor:pointer;color:#888;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:all 0.1s}
+.tab:hover{color:#1a1a1a}
+.tab.active{color:#1a1a1a;border-bottom-color:#0f172a;font-weight:600}
+.cc{border:0.5px solid rgba(0,0,0,0.08);border-radius:10px;overflow:hidden;margin-bottom:10px}
+.ch2{padding:11px 14px;display:flex;align-items:center;justify-content:space-between;background:#f8f7f4;flex-wrap:wrap;gap:8px}
+.sd{font-size:10px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:1px;margin:14px 0 8px;padding-bottom:5px;border-bottom:0.5px solid rgba(0,0,0,0.06)}
+.cbx{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;cursor:pointer;font-size:12px;border:0.5px solid rgba(0,0,0,0.1);background:#fff;margin-bottom:5px;transition:all 0.1s}
+.cbx:hover{border-color:#0f172a}.cbx.sel{border-color:#0f172a;background:#f8f7f4;font-weight:500}
+.nacha-row{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:0.5px solid rgba(0,0,0,0.05);gap:12px;flex-wrap:wrap}
+.nacha-row:last-child{border-bottom:none}
+.year-arch{background:#f8f7f4;border:0.5px solid rgba(0,0,0,0.08);border-radius:10px;padding:13px;margin-bottom:10px}
+.phys-stat{display:grid;grid-template-columns:1fr 1fr 1fr;border:0.5px solid rgba(0,0,0,0.08);border-radius:8px;overflow:hidden;margin-bottom:10px}
+.phys-stat-cell{padding:8px 10px}.phys-stat-cell:not(:last-child){border-right:0.5px solid rgba(0,0,0,0.06)}
+.empty-state{text-align:center;padding:40px 20px;color:#aaa}
+.empty-icon{font-size:32px;margin-bottom:12px}
+.empty-title{font-size:14px;font-weight:600;color:#888;margin-bottom:6px}
+.empty-sub{font-size:12px;color:#bbb}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:#fff;border-radius:14px;padding:24px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:16px}
+.upload-zone{border:2px dashed rgba(0,0,0,0.15);border-radius:12px;padding:36px;text-align:center;cursor:pointer;transition:all 0.1s;background:#fafaf8}
+.upload-zone:hover{border-color:#0f172a;background:#f0ede8}
+.upload-zone.drag{border-color:#0f172a;background:#e8e5e0}
+.step-track{display:flex;align-items:center}
+.step-dot{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.step-line{flex:1;height:2px;margin-bottom:12px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen" class="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">Vanguard Telerad</div>
+    <div class="login-sub">Billing Platform — Sign in to continue</div>
+    <div id="login-err" class="al ad" style="display:none"></div>
+    <div style="margin-bottom:12px"><label class="fl">Email</label><input type="email" id="login-email" placeholder="you@vanguardtelerad.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div style="margin-bottom:20px"><label class="fl">Password</label><input type="password" id="login-pw" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="btn bp" style="width:100%;justify-content:center;padding:10px" onclick="doLogin()">Sign In</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app-screen" class="app" style="display:none">
+  <div class="sidebar">
+    <div class="logo-area">
+      <div class="logo-name">Vanguard Telerad</div>
+      <div class="logo-sub2" id="role-label">Admin</div>
+      <div class="yr-row" id="year-row"></div>
+    </div>
+    <div class="nav" id="admin-nav">
+      <div class="nav-s">Operations</div>
+      <div class="ni active" onclick="nav('dashboard',this)">◎ Dashboard</div>
+      <div class="ni" onclick="nav('upload',this)">↑ Upload Cases</div>
+      <div class="ni" onclick="nav('batches',this)">⊞ Batches</div>
+      <div class="ni" onclick="nav('physicians',this)">⊙ Physicians</div>
+      <div class="ni" onclick="nav('payments',this)">◈ Payments</div>
+      <div class="ni" onclick="nav('nacha',this)">⬇ NACHA Reports</div>
+      <div class="ni" onclick="nav('settings',this)">⚙ Settings</div>
+    </div>
+    <div class="nav" id="phys-nav" style="display:none">
+      <div class="nav-s">My Account</div>
+      <div class="ni active" onclick="nav('phys-dash',this)">◎ My Dashboard</div>
+      <div class="ni" onclick="nav('phys-cases',this)">⊞ My Cases</div>
+      <div class="ni" onclick="nav('phys-pay',this)">◈ My Payments</div>
+    </div>
+    <div class="so-area">
+      <button class="so-btn" onclick="doLogout()">↩ Sign Out (<span id="current-user-name">...</span>)</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="tb-title" id="page-title">Dashboard</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:11px;color:#999" id="user-label">Vanguard Telerad</span>
+        <div class="av-circle" id="user-av">VT</div>
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="font-size:18px;font-weight:700" id="dash-yr-title">2026 Overview</div>
+        </div>
+        <div class="metrics">
+          <div class="m"><div class="ml">Total wRVUs</div><div class="mv" id="d-wrvus">0</div></div>
+          <div class="m"><div class="ml">Total Revenue</div><div class="mv" id="d-rev" style="color:#15803d">$0.00</div></div>
+          <div class="m"><div class="ml">Physician Pay</div><div class="mv" id="d-pay">$0.00</div></div>
+          <div class="m"><div class="ml">Vanguard Margin</div><div class="mv" id="d-margin" style="color:#15803d">$0.00</div></div>
+        </div>
+        <div id="contract-cards-dash" class="g3" style="margin-bottom:12px"></div>
+        <div class="card">
+          <div class="ch"><span class="ct">Recent Batches</span><button class="btn bp sm" onclick="nav('upload',document.querySelector('[onclick*=upload]'))">+ Upload</button></div>
+          <div id="dash-batches-wrap"></div>
+        </div>
+      </div>
+
+      <!-- PHYSICIANS -->
+      <div class="page" id="page-physicians">
+        <div style="margin-bottom:14px"><div style="font-size:18px;font-weight:700;margin-bottom:3px">Physicians</div><div style="color:#888;font-size:12px">Add physicians, assign to contracts, and set their per-case pay rates</div></div>
+        <div id="phys-ok" class="al as" style="display:none"></div>
+        <div class="card" style="margin-bottom:12px">
+          <div class="ch" style="cursor:pointer" onclick="togEl('pf','pft')"><span class="ct">+ Add New Physician</span><span id="pft" style="color:#999;font-size:16px">›</span></div>
+          <div id="pf" style="display:none"><div class="cb">
+            <div id="pe" class="al ad" style="display:none"></div>
+            <div class="g2">
+              <div>
+                <div class="sd">Physician Info</div>
+                <div class="g2" style="gap:8px;margin-bottom:10px">
+                  <div><label class="fl">First Name *</label><input type="text" id="pfn" placeholder="Jordan"></div>
+                  <div><label class="fl">Last Name *</label><input type="text" id="pln" placeholder="Verlare"></div>
+                </div>
+                <div style="margin-bottom:10px"><label class="fl">Email *</label><input type="email" id="pem" placeholder="dr.verlare@vanguardtelerad.com"></div>
+                <div style="margin-bottom:10px"><label class="fl">Specialty</label><input type="text" id="psp" placeholder="e.g. MSK Radiology"></div>
+                <div style="margin-bottom:10px">
+                  <label class="fl">Physician Type</label>
+                  <select id="pis-ceo"><option value="no">Standard physician — has pay rates</option><option value="yes">Dr. Kosarek (CEO) — all revenue kept by Vanguard</option></select>
+                </div>
+                <div><label class="fl">Login Password *</label><input type="password" id="ppw" placeholder="Physician uses this to sign in"><div style="font-size:11px;color:#999;margin-top:3px">Physician logs in with email + this password to see their own data</div></div>
+              </div>
+              <div>
+                <div class="sd">Pay Rates (flat per case)</div>
+                <div style="margin-bottom:10px"><label class="fl">MR Rate ($/case) *</label><div style="display:flex;align-items:center;gap:6px"><span style="color:#999">$</span><input type="number" id="pmr" step="0.01" min="0" placeholder="0.00"></div><div style="font-size:11px;color:#999;margin-top:3px">Paid per MR read regardless of wRVU value</div></div>
+                <div style="margin-bottom:12px"><label class="fl">CT Rate ($/case) *</label><div style="display:flex;align-items:center;gap:6px"><span style="color:#999">$</span><input type="number" id="pct" step="0.01" min="0" placeholder="0.00"></div><div style="font-size:11px;color:#999;margin-top:3px">Paid per CT read regardless of wRVU value</div></div>
+                <div class="sd">Assign to Contracts</div>
+                <div style="font-size:11px;color:#999;margin-bottom:8px">Select which contracts this physician reads for</div>
+                <div id="contract-checkboxes"></div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:14px">
+              <button class="btn bp" onclick="addPhysician()">Add Physician & Create Login</button>
+              <button class="btn" onclick="togEl('pf','pft')">Cancel</button>
+            </div>
+          </div></div>
+        </div>
+        <div id="phys-grid-wrap"></div>
+      </div>
+
+      <!-- UPLOAD -->
+      <div class="page" id="page-upload">
+        <div style="margin-bottom:14px"><div style="font-size:18px;font-weight:700;margin-bottom:3px">Upload Cases</div><div style="color:#888;font-size:12px">Upload an Excel or CSV file — wRVU values are matched automatically, then multiplied by the contract rate</div></div>
+        <div id="upload-no-contracts" class="al aw" style="display:none">⚠ Add at least one contract in Settings before uploading cases.</div>
+        <div id="upload-form-wrap">
+          <div style="max-width:340px;margin-bottom:16px">
+            <label class="fl">Which contract is this batch for? *</label>
+            <select id="up-contract"></select>
+          </div>
+          <div style="max-width:340px;margin-bottom:16px">
+            <label class="fl">Period Label</label>
+            <input type="text" id="up-label" placeholder="e.g. April 2026 Week 1">
+            <div style="font-size:11px;color:#999;margin-top:3px">Shows on statements and NACHA files</div>
+          </div>
+          <div id="drop-zone" class="upload-zone" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+            <div style="font-size:28px;margin-bottom:12px">📊</div>
+            <div style="font-weight:600;margin-bottom:6px">Drop your Excel or CSV file here</div>
+            <div style="color:#888;font-size:12px;margin-bottom:16px">Or click to browse</div>
+            <input type="file" id="file-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleFileSelect(this)">
+            <button class="btn bp" onclick="document.getElementById('file-input').click()">Choose File</button>
+          </div>
+          <div class="al ai" style="margin-top:12px;font-size:12px">
+            ℹ Your file should have columns for: <strong>Accession Number, Procedure Name, Physician Name</strong>. Other columns (date, facility, etc.) are optional. The app auto-detects column names.
+          </div>
+        </div>
+        <div id="upload-results" style="display:none"></div>
+      </div>
+
+      <!-- BATCHES -->
+      <div class="page" id="page-batches">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div style="font-size:18px;font-weight:700">Batches</div>
+          <div style="display:flex;gap:8px">
+            <button class="btn sm" onclick="nav('nacha',document.querySelector('[onclick*=nacha]'))">NACHA Reports →</button>
+            <button class="btn bp" onclick="nav('upload',document.querySelector('[onclick*=upload]'))">+ Upload New</button>
+          </div>
+        </div>
+        <div id="batches-wrap"></div>
+      </div>
+
+      <!-- PAYMENTS -->
+      <div class="page" id="page-payments">
+        <div style="margin-bottom:12px"><div style="font-size:18px;font-weight:700;margin-bottom:3px">Payments</div><div style="color:#888;font-size:12px">Track physician payouts · Download NACHA file to pay all physicians via free bank ACH</div></div>
+        <div id="payments-wrap"></div>
+      </div>
+
+      <!-- NACHA REPORTS -->
+      <div class="page" id="page-nacha">
+        <div style="margin-bottom:14px"><div style="font-size:18px;font-weight:700;margin-bottom:3px">NACHA Reports</div><div style="color:#888;font-size:12px">Monthly ACH payment files — upload to your bank to pay all physicians at once. Free, no fees. Dr. Kosarek always excluded.</div></div>
+        <div class="al ai">ℹ Download the file for any month, then upload it in your bank's ACH Origination portal. All physicians paid simultaneously. No fees.</div>
+        <div class="card">
+          <div class="ch">
+            <span class="ct" id="nacha-yr-title">2026 Monthly NACHA Reports</span>
+            <select id="nacha-yr-sel" style="width:auto;padding:5px 9px;font-size:11px" onchange="renderNacha()"></select>
+          </div>
+          <div id="nacha-list"></div>
+        </div>
+        <div class="card"><div class="ch"><span class="ct">What's in each NACHA file</span></div><div class="cb" style="font-size:12px;color:#666;line-height:1.7">Each file contains one ACH credit entry per physician (excluding Dr. Kosarek) for all approved batches in that calendar month. Formatted to NACHA CCD+ standard — includes physician name, amount owed, and bank account fields. Upload to your bank's ACH portal. Funds typically settle in 1 business day.</div></div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="page" id="page-settings">
+        <div style="margin-bottom:12px"><div style="font-size:18px;font-weight:700">Settings</div></div>
+        <div class="tab-bar">
+          <div class="tab active" onclick="stab(this,'sc')">Contracts & Rates</div>
+          <div class="tab" onclick="stab(this,'sr')">Physician Pay Rates</div>
+          <div class="tab" onclick="stab(this,'sw')">wRVU Table</div>
+          <div class="tab" onclick="stab(this,'sy')">Year Management</div>
+        </div>
+        <div id="sc">
+          <div id="contracts-list"></div>
+          <div class="card"><div class="ch" style="cursor:pointer" onclick="togEl('acf','act')"><span class="ct">+ Add New Contract</span><span id="act" style="color:#999;font-size:16px">›</span></div>
+          <div id="acf" style="display:none"><div class="cb">
+            <div id="ace" class="al ad" style="display:none"></div>
+            <div class="g2" style="gap:10px;margin-bottom:12px">
+              <div><label class="fl">Contract Name *</label><input type="text" id="cn" placeholder="e.g. Pennsylvania"></div>
+              <div><label class="fl">State Abbreviation</label><input type="text" id="ca" placeholder="PA" maxlength="3"></div>
+              <div><label class="fl">wRVU Rate ($/wRVU) *</label><div style="display:flex;align-items:center;gap:6px"><span style="color:#999">$</span><input type="number" id="cr" step="0.01" min="0" placeholder="48.00"></div><div style="font-size:11px;color:#999;margin-top:3px">What this contract pays Vanguard per wRVU</div></div>
+              <div><label class="fl">Contact Name</label><input type="text" id="cc" placeholder="e.g. Dr. John Smith"></div>
+            </div>
+            <div style="display:flex;gap:8px"><button class="btn bp" onclick="addContract()">Add Contract</button><button class="btn" onclick="togEl('acf','act')">Cancel</button></div>
+          </div></div></div>
+        </div>
+        <div id="sr" style="display:none"><div id="rates-wrap"></div></div>
+        <div id="sw" style="display:none">
+          <div class="card"><div class="ch"><span class="ct">wRVU Reference Table</span><span style="font-size:11px;color:#888">From your Vanguard rate sheet</span>
+            <div style="display:flex;gap:7px">
+              <select id="wc" style="width:auto;padding:5px 8px;font-size:11px" onchange="renderWT()"></select>
+              <input id="ws" placeholder="Search body part…" style="width:130px;padding:5px 8px;font-size:11px" oninput="renderWT()">
+              <select id="wm" style="width:auto;padding:5px 8px;font-size:11px" onchange="renderWT()"><option value="">All</option><option value="MR">MR</option><option value="CT">CT</option></select>
+            </div>
+          </div>
+          <div style="max-height:440px;overflow-y:auto"><table style="table-layout:fixed"><thead><tr id="wth"></tr></thead><tbody id="wtb"></tbody></table></div></div>
+        </div>
+        <div id="sy" style="display:none">
+          <div class="card"><div class="ch"><span class="ct">Year Management</span></div><div class="cb">
+            <div style="font-size:12px;color:#666;line-height:1.6;margin-bottom:14px">Each year is completely separate — batches and payments are isolated per year. Physicians and contracts carry over automatically.</div>
+            <div id="year-arch-list"></div>
+            <div style="border-top:0.5px solid rgba(0,0,0,0.06);padding-top:14px;margin-top:4px">
+              <div style="font-size:12px;font-weight:600;margin-bottom:8px">Start a New Year</div>
+              <div style="display:flex;gap:8px;align-items:center"><input type="number" id="new-yr" placeholder="e.g. 2027" style="width:120px"><button class="btn bp" onclick="addYear()">Create New Year Tab</button></div>
+              <div style="font-size:11px;color:#999;margin-top:5px">Physicians and contracts carry over. Batch and payment history stays in the current year.</div>
+            </div>
+          </div></div>
+        </div>
+      </div>
+
+      <!-- PHYSICIAN PORTAL: DASHBOARD -->
+      <div class="page" id="page-phys-dash">
+        <div style="margin-bottom:12px"><div style="font-size:18px;font-weight:700;margin-bottom:3px" id="phys-dash-name">My Dashboard</div><div style="color:#888;font-size:12px" id="phys-dash-sub"></div></div>
+        <div class="metrics">
+          <div class="m"><div class="ml">Total Earned (All Time)</div><div class="mv" style="color:#15803d" id="pd-earned">$0.00</div></div>
+          <div class="m"><div class="ml">Total Cases Read</div><div class="mv" id="pd-cases">0</div></div>
+          <div class="m"><div class="ml">Pending Payment</div><div class="mv" style="color:#a16207" id="pd-pending">$0.00</div></div>
+          <div class="m"><div class="ml">Total Paid Out</div><div class="mv" style="color:#15803d" id="pd-paid">$0.00</div></div>
+        </div>
+        <div class="card"><div class="ch"><span class="ct">My Contracts</span></div><div id="pd-contracts" style="padding:14px;color:#aaa;font-size:12px">No contracts assigned.</div></div>
+        <div class="card"><div class="ch"><span class="ct">Recent Batches & Payment Status</span></div><div id="pd-batches-wrap"></div></div>
+      </div>
+
+      <!-- PHYSICIAN PORTAL: CASES -->
+      <div class="page" id="page-phys-cases">
+        <div style="margin-bottom:12px"><div style="font-size:18px;font-weight:700">My Cases</div><div style="color:#888;font-size:12px">All cases attributed to you</div></div>
+        <div id="phys-cases-wrap"></div>
+      </div>
+
+      <!-- PHYSICIAN PORTAL: PAYMENTS -->
+      <div class="page" id="page-phys-pay">
+        <div style="margin-bottom:12px"><div style="font-size:18px;font-weight:700">My Payments</div></div>
+        <div id="phys-pay-wrap"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- EDIT CONTRACT MODAL -->
+<div id="edit-contract-modal" class="modal-bg" style="display:none">
+  <div class="modal">
+    <div class="modal-title">Edit Contract</div>
+    <div id="ecm-err" class="al ad" style="display:none"></div>
+    <div class="g2" style="gap:10px;margin-bottom:12px">
+      <div><label class="fl">Contract Name *</label><input type="text" id="ecm-name"></div>
+      <div><label class="fl">State Abbreviation</label><input type="text" id="ecm-abbr" maxlength="3"></div>
+      <div><label class="fl">wRVU Rate ($/wRVU) *</label><div style="display:flex;align-items:center;gap:6px"><span style="color:#999">$</span><input type="number" id="ecm-rate" step="0.01" min="0"></div></div>
+      <div><label class="fl">Contact Name</label><input type="text" id="ecm-contact"></div>
+    </div>
+    <input type="hidden" id="ecm-id">
+    <div style="display:flex;gap:8px"><button class="btn bp" onclick="saveEditContract()">Save Changes</button><button class="btn" onclick="closeModal('edit-contract-modal')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- EDIT PHYSICIAN MODAL -->
+<div id="edit-phys-modal" class="modal-bg" style="display:none">
+  <div class="modal">
+    <div class="modal-title">Edit Physician</div>
+    <div id="epm-err" class="al ad" style="display:none"></div>
+    <div class="g2" style="gap:10px;margin-bottom:12px">
+      <div><label class="fl">First Name *</label><input type="text" id="epm-fn"></div>
+      <div><label class="fl">Last Name *</label><input type="text" id="epm-ln"></div>
+      <div style="grid-column:span 2"><label class="fl">Email *</label><input type="email" id="epm-em"></div>
+      <div style="grid-column:span 2"><label class="fl">Specialty</label><input type="text" id="epm-sp"></div>
+      <div><label class="fl">MR Rate ($/case)</label><div style="display:flex;align-items:center;gap:6px"><span style="color:#999">$</span><input type="number" id="epm-mr" step="0.01" min="0"></div></div>
+      <div><label class="fl">CT Rate ($/case)</label><div style="display:flex;align-items:center;gap:6px"><span style="color:#999">$</span><input type="number" id="epm-ct" step="0.01" min="0"></div></div>
+      <div style="grid-column:span 2"><label class="fl">New Password (leave blank to keep current)</label><input type="password" id="epm-pw" placeholder="Leave blank to keep existing password"></div>
+    </div>
+    <div class="sd">Contract Assignments</div>
+    <div id="epm-contracts" style="margin-bottom:14px"></div>
+    <input type="hidden" id="epm-id">
+    <div style="display:flex;gap:8px"><button class="btn bp" onclick="saveEditPhysician()">Save Changes</button><button class="btn" onclick="closeModal('edit-phys-modal')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- BATCH DETAIL MODAL -->
+<div id="batch-modal" class="modal-bg" style="display:none">
+  <div class="modal" style="max-width:800px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="modal-title" style="margin:0" id="bm-title">Batch Detail</div>
+      <button class="btn sm" onclick="closeModal('batch-modal')">Close</button>
+    </div>
+    <div id="bm-content"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// DATA & STATE
+// ═══════════════════════════════════════════════════════════════
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December']
+
+// Built-in users — physicians pre-loaded
+const BUILTIN_USERS=[
+  {id:'admin',email:'admin@vanguardtelerad.com',password:'vanguard2026',role:'admin',name:'Admin'},
+  {id:'jordan',email:'dr.verlare@vanguardtelerad.com',password:'verlare1234',role:'physician',name:'Dr. Jordan Verlare',physicianId:'jordan-phys'},
+  {id:'erik',email:'dr.nelson@vanguardtelerad.com',password:'nelson1234',role:'physician',name:'Dr. Erik Nelson',physicianId:'erik-phys'},
+]
+
+let currentUser=null
+let activeYear=2026
+
+// Load state from localStorage or init defaults
+const STATE_VERSION='vt_v3'
+
+const DEFAULT_PHYSICIANS=[
+  {id:'jordan-phys',firstName:'Jordan',lastName:'Verlare',name:'Dr. Jordan Verlare',email:'dr.verlare@vanguardtelerad.com',specialty:'Radiology',mrRate:0,ctRate:0,contracts:[],cases:0,revenue:0,paid:0,isCeo:false},
+  {id:'erik-phys',firstName:'Erik',lastName:'Nelson',name:'Dr. Erik Nelson',email:'dr.nelson@vanguardtelerad.com',specialty:'Radiology',mrRate:0,ctRate:0,contracts:[],cases:0,revenue:0,paid:0,isCeo:false},
+]
+
+function freshState(){
+  return {
+    _version:STATE_VERSION,
+    years:[2026],
+    contracts:[],
+    physicians:DEFAULT_PHYSICIANS.map(p=>({...p})),
+    batches:[],
+    payments:[],
+    nachaData:{2026:{January:null,February:null,March:null,April:null,May:null,June:null,July:null,August:null,September:null,October:null,November:null,December:null}},
+  }
+}
+
+function loadState(){
+  try{
+    const raw=localStorage.getItem(STATE_VERSION)
+    if(raw){
+      const parsed=JSON.parse(raw)
+      // Patch in any missing fields defensively
+      if(!parsed.physicians||!Array.isArray(parsed.physicians))parsed.physicians=[]
+      if(!parsed.batches)parsed.batches=[]
+      if(!parsed.payments)parsed.payments=[]
+      if(!parsed.contracts)parsed.contracts=[]
+      if(!parsed.years)parsed.years=[2026]
+      if(!parsed.nachaData)parsed.nachaData=freshState().nachaData
+      // Always ensure Jordan and Erik exist as physicians
+      DEFAULT_PHYSICIANS.forEach(dp=>{
+        if(!parsed.physicians.find(p=>p.id===dp.id))parsed.physicians.push({...dp})
+      })
+      return parsed
+    }
+  }catch(e){console.warn('State load error:',e)}
+  return freshState()
+}
+
+let S=loadState()
+
+function save(){
+  try{localStorage.setItem(STATE_VERSION,JSON.stringify(S))}
+  catch(e){console.warn('Save failed:',e)}
+}
+
+// ═══════════════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════════════
+function doLogin(){
+  const emailEl=document.getElementById('login-email')
+  const pwEl=document.getElementById('login-pw')
+  const err=document.getElementById('login-err')
+  const email=(emailEl.value||'').trim().toLowerCase()
+  const pw=(pwEl.value||'')
+
+  if(!email||!pw){
+    err.textContent='Please enter your email and password.'
+    err.style.display='flex'
+    return
+  }
+
+  // Hardcoded credentials — cannot be broken by localStorage or state
+  const CREDS=[
+    {email:'admin@vanguardtelerad.com',password:'vanguard2026',role:'admin',id:'admin',name:'Admin',physicianId:null},
+    {email:'dr.verlare@vanguardtelerad.com',password:'verlare1234',role:'physician',id:'jordan',name:'Dr. Jordan Verlare',physicianId:'jordan-phys'},
+    {email:'dr.nelson@vanguardtelerad.com',password:'nelson1234',role:'physician',id:'erik',name:'Dr. Erik Nelson',physicianId:'erik-phys'},
+  ]
+
+  let user=CREDS.find(u=>u.email===email&&u.password===pw)
+
+  // Also check any physicians added by admin at runtime
+  if(!user&&S&&S.addedUsers&&Array.isArray(S.addedUsers)){
+    user=S.addedUsers.find(u=>u.email&&u.email.toLowerCase()===email&&u.password===pw)
+  }
+
+  if(!user){
+    err.textContent='Incorrect email or password.'
+    err.style.display='flex'
+    return
+  }
+  err.style.display='none'
+  currentUser=user
+  document.getElementById('login-screen').style.display='none'
+  document.getElementById('app-screen').style.display='flex'
+  document.getElementById('current-user-name').textContent=user.name
+  document.getElementById('user-av').textContent=user.name.split(' ').map(w=>w[0]).slice(0,2).join('')
+  document.getElementById('user-label').textContent=user.name
+  if(user.role==='physician'){
+    document.getElementById('admin-nav').style.display='none'
+    document.getElementById('phys-nav').style.display='block'
+    document.getElementById('role-label').textContent='Physician'
+    nav('phys-dash',document.querySelector('#phys-nav .ni'))
+  } else {
+    document.getElementById('admin-nav').style.display='block'
+    document.getElementById('phys-nav').style.display='none'
+    document.getElementById('role-label').textContent='Admin'
+    renderYearRow()
+    nav('dashboard',document.querySelector('#admin-nav .ni'))
+  }
+}
+
+function doLogout(){
+  currentUser=null
+  document.getElementById('login-screen').style.display='flex'
+  document.getElementById('app-screen').style.display='none'
+  document.getElementById('login-email').value=''
+  document.getElementById('login-pw').value=''
+}
+
+// ═══════════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════════
+const PNAMES={dashboard:'Dashboard',upload:'Upload Cases',batches:'Batches',physicians:'Physicians',payments:'Payments',nacha:'NACHA Reports',settings:'Settings','phys-dash':'My Dashboard','phys-cases':'My Cases','phys-pay':'My Payments'}
+
+function nav(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'))
+  document.getElementById('page-'+id).classList.add('active')
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'))
+  if(el)el.classList.add('active')
+  document.getElementById('page-title').textContent=PNAMES[id]||id
+  if(id==='settings')renderSettings()
+  if(id==='payments')renderPayments()
+  if(id==='physicians'){renderPhysicians();renderContractCBs()}
+  if(id==='nacha'){populateNachaSel();renderNacha()}
+  if(id==='batches')renderBatchesPage()
+  if(id==='upload')renderUploadPage()
+  if(id==='dashboard')renderDashboard()
+  if(id==='phys-dash')renderPhysDash()
+  if(id==='phys-cases')renderPhysCases()
+  if(id==='phys-pay')renderPhysPayPage()
+}
+
+function stab(el,id){
+  el.closest('.tab-bar').querySelectorAll('.tab').forEach(t=>t.classList.remove('active'))
+  el.classList.add('active')
+  ;['sc','sr','sw','sy'].forEach(s=>{const e=document.getElementById(s);if(e)e.style.display=s===id?'block':'none'})
+  if(id==='sr')renderRatesPage()
+  if(id==='sw'){populateWrvuSel();renderWT()}
+  if(id==='sy')renderYearArch()
+}
+
+function togEl(fid,tid){
+  const f=document.getElementById(fid),t=document.getElementById(tid)
+  const o=f.style.display!=='none';f.style.display=o?'none':'block';t.textContent=o?'›':'˅'
+}
+
+function openModal(id){document.getElementById(id).style.display='flex'}
+function closeModal(id){document.getElementById(id).style.display='none'}
+
+// ═══════════════════════════════════════════════════════════════
+// YEAR MANAGEMENT
+// ═══════════════════════════════════════════════════════════════
+function renderYearRow(){
+  const el=document.getElementById('year-row')
+  el.innerHTML=S.years.map(y=>`<button class="yr-btn ${y===activeYear?'active':''}" onclick="switchYear(${y})">${y}</button>`).join('')
+    +'<button class="yr-add" onclick="navToYearSettings()" title="Add new year">+ yr</button>'
+}
+
+function navToYearSettings(){
+  nav('settings',document.querySelector('[onclick*=settings]'))
+  setTimeout(()=>{const tabs=document.querySelectorAll('.tab');if(tabs[3])stab(tabs[3],'sy')},80)
+}
+
+function switchYear(y){
+  activeYear=y
+  if(!S.nachaData[y])S.nachaData[y]={January:null,February:null,March:null,April:null,May:null,June:null,July:null,August:null,September:null,October:null,November:null,December:null}
+  renderYearRow();renderDashboard();renderBatchesPage();renderNacha();renderYearArch()
+}
+
+function addYear(){
+  const val=parseInt(document.getElementById('new-yr').value)
+  if(!val||val<2020||val>2040){alert('Enter a valid year');return}
+  if(S.years.includes(val)){alert('Year already exists');return}
+  S.years.push(val);S.years.sort()
+  S.nachaData[val]={January:null,February:null,March:null,April:null,May:null,June:null,July:null,August:null,September:null,October:null,November:null,December:null}
+  document.getElementById('new-yr').value=''
+  save();renderYearRow();renderYearArch()
+  if(confirm(`Year ${val} created. Switch to it now?`))switchYear(val)
+}
+
+function renderYearArch(){
+  const el=document.getElementById('year-arch-list');if(!el)return
+  el.innerHTML=S.years.map(y=>{
+    const yb=S.batches.filter(b=>b.year===y)
+    const rev=yb.reduce((s,b)=>s+b.revenue,0)
+    return `<div class="year-arch"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <div style="font-weight:600">${y} ${y===activeYear?'<span style="font-size:10px;background:#dbeafe;color:#1d4ed8;padding:1px 6px;border-radius:3px">Current</span>':''}</div>
+      <div style="display:flex;gap:6px"><button class="btn sm" onclick="switchYear(${y})">Switch to ${y}</button><button class="btn sm" onclick="dlYearSummary(${y})">Download Summary</button></div>
+      </div><div style="font-size:11px;color:#888">${yb.length} batches · $${rev.toFixed(2)} revenue</div></div>`
+  }).join('')
+}
+
+function dlYearSummary(y){
+  const csv=`Vanguard Telerad — ${y} Annual Summary
+
+Month,Total Paid Out,Status
+`+
+    MONTHS.map(m=>{const d=S.nachaData[y]?.[m];return d?`${m},$${d.total.toFixed(2)},${d.status}`:`${m},$0,no data`}).join('\n')
+  dlFile(`VanguardTelerad_${y}_Summary.csv`,csv)
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════════════
+function renderDashboard(){
+  document.getElementById('dash-yr-title').textContent=`${activeYear} Overview`
+  const yb=S.batches.filter(b=>b.year===activeYear)
+  const totalW=yb.reduce((s,b)=>s+b.wrvus,0)
+  const totalR=yb.reduce((s,b)=>s+b.revenue,0)
+  const totalP=yb.reduce((s,b)=>s+b.physCost,0)
+  document.getElementById('d-wrvus').textContent=totalW.toFixed(2)
+  document.getElementById('d-rev').textContent='$'+totalR.toFixed(2)
+  document.getElementById('d-pay').textContent='$'+totalP.toFixed(2)
+  document.getElementById('d-margin').textContent='$'+(totalR-totalP).toFixed(2)
+  const cc=document.getElementById('contract-cards-dash')
+  if(S.contracts.length===0){cc.innerHTML='';return}
+  cc.innerHTML=S.contracts.map(c=>{
+    const cb=yb.filter(b=>b.contractId===c.id)
+    const w=cb.reduce((s,b)=>s+b.wrvus,0),r=cb.reduce((s,b)=>s+b.revenue,0)
+    return `<div class="cc"><div class="ch2"><div><div style="font-weight:600;font-size:12px">${c.name}</div><div style="color:#888;font-size:11px">$${c.rate.toFixed(2)}/wRVU</div></div><span class="pill pg">Active</span></div>
+    <div style="padding:10px 14px;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div><div style="font-size:10px;color:#888">wRVUs</div><div style="font-weight:600">${w.toFixed(2)}</div></div>
+      <div><div style="font-size:10px;color:#888">Revenue</div><div style="font-weight:600;color:#15803d">$${r.toFixed(2)}</div></div>
+    </div></div>`
+  }).join('')
+  const dbw=document.getElementById('dash-batches-wrap')
+  if(yb.length===0){dbw.innerHTML='<div class="empty-state"><div class="empty-icon">📂</div><div class="empty-title">No batches yet</div><div class="empty-sub">Upload your first case file to get started</div></div>';return}
+  const recent=[...yb].reverse().slice(0,5)
+  dbw.innerHTML=`<table><thead><tr><th>Period</th><th>Contract</th><th>Cases</th><th>wRVUs</th><th>Revenue</th><th>Phys. Cost</th><th>Margin</th><th>Status</th></tr></thead><tbody>`+
+    recent.map(b=>{const c=S.contracts.find(x=>x.id===b.contractId)
+      return `<tr onclick="openBatchModal('${b.id}')" style="cursor:pointer"><td><div style="font-weight:600">${b.label}</div></td><td>${c?`<span class="bge bgr">${c.abbr}</span>`:''}</td><td>${b.cases}</td><td>${b.wrvus.toFixed(2)}</td><td style="color:#15803d">$${b.revenue.toFixed(2)}</td><td>$${b.physCost.toFixed(2)}</td><td style="color:#15803d;font-weight:600">$${(b.revenue-b.physCost).toFixed(2)}</td><td><span class="pill ${statusPill(b.status)}">${b.status}</span></td></tr>`
+    }).join('')+'</tbody></table>'
+}
+
+function statusPill(s){return s==='approved'||s==='deposited'?'pg':s==='sent'||s==='initiated'?'pb':'py'}
+
+// ═══════════════════════════════════════════════════════════════
+// CONTRACTS
+// ═══════════════════════════════════════════════════════════════
+function renderContracts(){
+  const el=document.getElementById('contracts-list')
+  if(S.contracts.length===0){
+    el.innerHTML=`<div class="card"><div class="cb"><div class="empty-state"><div class="empty-icon">🏥</div><div class="empty-title">No contracts yet</div><div class="empty-sub">Add your first contract below</div></div></div></div>`;return
+  }
+  el.innerHTML=S.contracts.map(c=>{
+    const yb=S.batches.filter(b=>b.contractId===c.id&&b.year===activeYear)
+    const w=yb.reduce((s,b)=>s+b.wrvus,0),r=yb.reduce((s,b)=>s+b.revenue,0)
+    return `<div class="cc">
+      <div class="ch2">
+        <div style="display:flex;align-items:center;gap:9px">
+          <div style="width:32px;height:32px;border-radius:7px;background:#fff;border:0.5px solid rgba(0,0,0,0.1);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#555">${c.abbr}</div>
+          <div><div style="font-weight:600;font-size:12px">${c.name}</div><div style="color:#888;font-size:11px">${c.contact?'Contact: '+c.contact:''}</div></div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn sm" onclick="openEditContract('${c.id}')">Edit</button>
+          <span class="pill pg">Active</span>
+        </div>
+      </div>
+      <div style="padding:12px 14px">
+        <div class="g3" style="gap:10px;margin-bottom:12px">
+          <div><label class="fl">wRVU Rate</label><div style="font-size:18px;font-weight:700;margin-top:3px;color:#0f172a">$${c.rate.toFixed(2)}<span style="font-size:11px;color:#888;font-weight:400">/wRVU</span></div></div>
+          <div><label class="fl">Total wRVUs (${activeYear})</label><div style="font-size:18px;font-weight:700;margin-top:3px">${w.toFixed(2)}</div></div>
+          <div><label class="fl">Revenue (${activeYear})</label><div style="font-size:18px;font-weight:700;color:#15803d;margin-top:3px">$${r.toFixed(2)}</div></div>
+        </div>
+        <div style="border-top:0.5px solid rgba(0,0,0,0.06);padding-top:10px">
+          <div style="font-size:10px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px">Revenue per case at $${c.rate.toFixed(2)}/wRVU</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">${[['MR Knee WO',1.35],['MR L-Spine WO',1.48],['CT Hip WO',1.00],['MR Shld W/WO',2.15]].map(([l,w2])=>`<div style="background:#f8f7f4;border-radius:6px;padding:5px 8px;font-size:11px;text-align:center"><div style="color:#888;margin-bottom:1px">${l}</div><div style="font-weight:600;color:#15803d">$${(w2*c.rate).toFixed(2)}</div></div>`).join('')}</div>
+        </div>
+      </div>
+    </div>`
+  }).join('')
+}
+
+function addContract(){
+  const name=document.getElementById('cn').value.trim()
+  const abbr=(document.getElementById('ca').value.trim()||name.slice(0,2)).toUpperCase()
+  const rate=parseFloat(document.getElementById('cr').value)
+  const contact=document.getElementById('cc').value.trim()
+  const err=document.getElementById('ace')
+  if(!name){err.textContent='Contract name is required';err.style.display='flex';return}
+  if(!rate||rate<=0){err.textContent='wRVU rate is required';err.style.display='flex';return}
+  err.style.display='none'
+  S.contracts.push({id:'c'+Date.now(),name,abbr,rate,contact:contact||''})
+  ;['cn','ca','cr','cc'].forEach(id=>document.getElementById(id).value='')
+  togEl('acf','act');save();renderContracts();renderContractCBs();populateWrvuSel();populateUploadSel();renderDashboard()
+}
+
+function openEditContract(id){
+  const c=S.contracts.find(x=>x.id===id);if(!c)return
+  document.getElementById('ecm-id').value=id
+  document.getElementById('ecm-name').value=c.name
+  document.getElementById('ecm-abbr').value=c.abbr
+  document.getElementById('ecm-rate').value=c.rate.toFixed(2)
+  document.getElementById('ecm-contact').value=c.contact||''
+  document.getElementById('ecm-err').style.display='none'
+  openModal('edit-contract-modal')
+}
+
+function saveEditContract(){
+  const id=document.getElementById('ecm-id').value
+  const name=document.getElementById('ecm-name').value.trim()
+  const abbr=(document.getElementById('ecm-abbr').value.trim()||name.slice(0,2)).toUpperCase()
+  const rate=parseFloat(document.getElementById('ecm-rate').value)
+  const contact=document.getElementById('ecm-contact').value.trim()
+  const err=document.getElementById('ecm-err')
+  if(!name){err.textContent='Name required';err.style.display='flex';return}
+  if(!rate||rate<=0){err.textContent='Rate required';err.style.display='flex';return}
+  err.style.display='none'
+  const c=S.contracts.find(x=>x.id===id)
+  if(c){Object.assign(c,{name,abbr,rate,contact})}
+  save();closeModal('edit-contract-modal');renderContracts();renderDashboard();renderWT()
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PHYSICIANS
+// ═══════════════════════════════════════════════════════════════
+const selC=new Set()
+
+function renderContractCBs(){
+  const el=document.getElementById('contract-checkboxes');if(!el)return
+  if(S.contracts.length===0){el.innerHTML='<div style="font-size:12px;color:#aaa;padding:8px 0">No contracts yet. Add contracts in Settings first.</div>';return}
+  el.innerHTML=S.contracts.map(c=>`<div class="cbx" id="cb-${c.id}" onclick="togCB('${c.id}')"><div style="width:14px;height:14px;border-radius:3px;border:1.5px solid rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0" id="cbbox-${c.id}"></div><div><div style="font-size:12px;font-weight:500">${c.name}</div><div style="font-size:11px;color:#888">$${c.rate.toFixed(2)}/wRVU</div></div></div>`).join('')
+}
+
+function togCB(id){
+  if(selC.has(id)){selC.delete(id);document.getElementById('cbbox-'+id).textContent='';document.getElementById('cb-'+id).classList.remove('sel')}
+  else{selC.add(id);document.getElementById('cbbox-'+id).textContent='✓';document.getElementById('cb-'+id).classList.add('sel')}
+}
+
+function renderPhysicians(){
+  const el=document.getElementById('phys-grid-wrap')
+  if(S.physicians.length===0){el.innerHTML=`<div class="card"><div class="cb"><div class="empty-state"><div class="empty-icon">👨‍⚕️</div><div class="empty-title">No physicians yet</div><div class="empty-sub">Add your first physician using the form above</div></div></div></div>`;return}
+  const inits=n=>n.replace('Dr. ','').split(' ').filter(Boolean).map(w=>w[0]).join('')
+  el.innerHTML='<div class="g2">'+S.physicians.map(p=>`
+    <div class="card">
+      <div class="ch">
+        <div style="display:flex;align-items:center;gap:9px">
+          <div style="width:30px;height:30px;border-radius:50%;background:#f1f0eb;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">${inits(p.name)}</div>
+          <div><div style="font-weight:600;font-size:12px">${p.name}${p.isCeo?' <span style="font-size:9px;background:#dbeafe;color:#1d4ed8;padding:1px 5px;border-radius:3px">CEO</span>':''}</div><div style="color:#888;font-size:11px">${p.specialty||'Radiology'} · ${p.email}</div></div>
+        </div>
+        <div style="display:flex;gap:5px"><button class="btn sm" onclick="openEditPhys('${p.id}')">Edit</button><span class="pill pg">Active</span></div>
+      </div>
+      <div class="cb">
+        ${p.isCeo
+          ?'<div style="font-size:11px;color:#1d4ed8;background:#dbeafe;padding:6px 9px;border-radius:6px;margin-bottom:10px">All revenue from this physician&#39;s reads is kept by Vanguard. Excluded from NACHA payments.</div>'
+          :`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:9px 11px;background:#f8f7f4;border-radius:8px;margin-bottom:10px"><div><div style="font-size:10px;color:#888">MR Rate</div><div style="font-size:15px;font-weight:700">$${p.mrRate.toFixed(2)}<span style="font-size:10px;color:#888;font-weight:400">/case</span></div></div><div><div style="font-size:10px;color:#888">CT Rate</div><div style="font-size:15px;font-weight:700">$${p.ctRate.toFixed(2)}<span style="font-size:10px;color:#888;font-weight:400">/case</span></div></div></div>`}
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px">${p.contracts.map(cid=>{const c=S.contracts.find(x=>x.id===cid);return c?`<span class="bge bgr">${c.abbr}</span>`:''}).join('')}</div>
+        <div class="phys-stat">
+          <div class="phys-stat-cell"><div style="font-size:10px;color:#888;margin-bottom:2px">Cases</div><div style="font-weight:700;font-size:14px">${p.cases}</div></div>
+          <div class="phys-stat-cell"><div style="font-size:10px;color:#888;margin-bottom:2px">Revenue</div><div style="font-weight:700;font-size:14px;color:#15803d">$${p.revenue.toFixed(2)}</div></div>
+          <div class="phys-stat-cell"><div style="font-size:10px;color:#888;margin-bottom:2px">${p.isCeo?'Kept':'Paid Out'}</div><div style="font-weight:700;font-size:14px">$${p.paid.toFixed(2)}</div></div>
+        </div>
+      </div>
+    </div>`).join('')+'</div>'
+}
+
+function addPhysician(){
+  const fn=document.getElementById('pfn').value.trim(),ln=document.getElementById('pln').value.trim()
+  const em=document.getElementById('pem').value.trim().toLowerCase()
+  const mr=parseFloat(document.getElementById('pmr').value),ct=parseFloat(document.getElementById('pct').value)
+  const pw=document.getElementById('ppw').value,isCeo=document.getElementById('pis-ceo').value==='yes'
+  const err=document.getElementById('pe')
+  if(!fn){err.textContent='First name required';err.style.display='flex';return}
+  if(!ln){err.textContent='Last name required';err.style.display='flex';return}
+  if(!em||!em.includes('@')){err.textContent='Valid email required';err.style.display='flex';return}
+  const allExisting=[...BUILTIN_USERS,...(S.addedUsers||[])]
+  if(allExisting.find(u=>u.email.toLowerCase()===em)){err.textContent='Email already in use by another account';err.style.display='flex';return}
+  if(!isCeo&&(isNaN(mr)||mr<0)){err.textContent='MR rate required';err.style.display='flex';return}
+  if(!isCeo&&(isNaN(ct)||ct<0)){err.textContent='CT rate required';err.style.display='flex';return}
+  if(!pw){err.textContent='Login password required';err.style.display='flex';return}
+  if(selC.size===0){err.textContent='Assign at least one contract';err.style.display='flex';return}
+  err.style.display='none'
+  const pid='p'+Date.now()
+  S.physicians.push({id:pid,firstName:fn,lastName:ln,name:`Dr. ${fn} ${ln}`,email:em,specialty:document.getElementById('psp').value.trim(),mrRate:isCeo?0:mr,ctRate:isCeo?0:ct,contracts:[...selC],cases:0,revenue:0,paid:0,isCeo})
+  if(!S.addedUsers)S.addedUsers=[]
+  S.addedUsers.push({id:'u'+Date.now(),email:em,password:pw,role:'physician',name:`Dr. ${fn} ${ln}`,physicianId:pid})
+  selC.clear()
+  ;['pfn','pln','pem','psp','pmr','pct','ppw'].forEach(id=>document.getElementById(id).value='')
+  document.getElementById('pis-ceo').value='no'
+  togEl('pf','pft');save();renderPhysicians();renderRatesPage()
+  const s=document.getElementById('phys-ok');s.textContent=`✓ Dr. ${fn} ${ln} added and login created.`;s.style.display='flex';setTimeout(()=>s.style.display='none',4000)
+}
+
+function openEditPhys(id){
+  const p=S.physicians.find(x=>x.id===id);if(!p)return
+  document.getElementById('epm-id').value=id
+  document.getElementById('epm-fn').value=p.firstName||p.name.replace('Dr. ','').split(' ')[0]
+  document.getElementById('epm-ln').value=p.lastName||p.name.replace('Dr. ','').split(' ').slice(1).join(' ')
+  document.getElementById('epm-em').value=p.email
+  document.getElementById('epm-sp').value=p.specialty||''
+  document.getElementById('epm-mr').value=p.mrRate.toFixed(2)
+  document.getElementById('epm-ct').value=p.ctRate.toFixed(2)
+  document.getElementById('epm-pw').value=''
+  document.getElementById('epm-err').style.display='none'
+  // Contract checkboxes
+  const ec=document.getElementById('epm-contracts')
+  ec.innerHTML=S.contracts.map(c=>`<div class="cbx ${p.contracts.includes(c.id)?'sel':''}" id="epc-${c.id}" onclick="togEPC('${c.id}')"><div style="width:14px;height:14px;border-radius:3px;border:1.5px solid rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0" id="epcbox-${c.id}">${p.contracts.includes(c.id)?'✓':''}</div><div><div style="font-size:12px;font-weight:500">${c.name}</div><div style="font-size:11px;color:#888">$${c.rate.toFixed(2)}/wRVU</div></div></div>`).join('') || '<div style="font-size:12px;color:#aaa">No contracts added yet</div>'
+  openModal('edit-phys-modal')
+}
+
+function togEPC(id){
+  const box=document.getElementById('epcbox-'+id),wrap=document.getElementById('epc-'+id)
+  if(box.textContent==='✓'){box.textContent='';wrap.classList.remove('sel')}
+  else{box.textContent='✓';wrap.classList.add('sel')}
+}
+
+function saveEditPhysician(){
+  const id=document.getElementById('epm-id').value
+  const fn=document.getElementById('epm-fn').value.trim(),ln=document.getElementById('epm-ln').value.trim()
+  const em=document.getElementById('epm-em').value.trim().toLowerCase()
+  const mr=parseFloat(document.getElementById('epm-mr').value),ct=parseFloat(document.getElementById('epm-ct').value)
+  const pw=document.getElementById('epm-pw').value
+  const err=document.getElementById('epm-err')
+  if(!fn||!ln){err.textContent='Name required';err.style.display='flex';return}
+  if(!em||!em.includes('@')){err.textContent='Valid email required';err.style.display='flex';return}
+  // Check selected contracts
+  const selectedContracts=S.contracts.filter(c=>document.getElementById('epcbox-'+c.id)?.textContent==='✓').map(c=>c.id)
+  const p=S.physicians.find(x=>x.id===id)
+  if(!p)return
+  Object.assign(p,{firstName:fn,lastName:ln,name:`Dr. ${fn} ${ln}`,email:em,specialty:document.getElementById('epm-sp').value.trim(),mrRate:isNaN(mr)?p.mrRate:mr,ctRate:isNaN(ct)?p.ctRate:ct,contracts:selectedContracts})
+  // Update user record in addedUsers if it exists
+  if(S.addedUsers){
+    const u=S.addedUsers.find(x=>x.physicianId===id)
+    if(u){u.email=em;u.name=`Dr. ${fn} ${ln}`;if(pw)u.password=pw}
+  }
+  err.style.display='none';save();closeModal('edit-phys-modal');renderPhysicians();renderRatesPage()
+}
+
+// ═══════════════════════════════════════════════════════════════
+// wRVU TABLE
+// ═══════════════════════════════════════════════════════════════
+const WRVU=[
+  {mod:'MR',body:'Knee',contrast:'Without',wrvu:1.35},{mod:'MR',body:'Knee',contrast:'With',wrvu:1.62},{mod:'MR',body:'Knee',contrast:'W & W/O',wrvu:2.15},
+  {mod:'MR',body:'Lumbar Spine',contrast:'Without',wrvu:1.48},{mod:'MR',body:'Lumbar Spine',contrast:'With',wrvu:1.78},{mod:'MR',body:'Lumbar Spine',contrast:'W & W/O',wrvu:2.29},
+  {mod:'MR',body:'Cervical Spine',contrast:'Without',wrvu:1.48},{mod:'MR',body:'Cervical Spine',contrast:'With',wrvu:1.78},{mod:'MR',body:'Cervical Spine',contrast:'W & W/O',wrvu:2.29},
+  {mod:'MR',body:'Thoracic Spine',contrast:'Without',wrvu:1.48},{mod:'MR',body:'Thoracic Spine',contrast:'With',wrvu:1.78},{mod:'MR',body:'Thoracic Spine',contrast:'W & W/O',wrvu:2.29},
+  {mod:'MR',body:'Shoulder',contrast:'Without',wrvu:1.35},{mod:'MR',body:'Shoulder',contrast:'With',wrvu:1.62},{mod:'MR',body:'Shoulder',contrast:'W & W/O',wrvu:2.15},
+  {mod:'MR',body:'Hip',contrast:'Without',wrvu:1.35},{mod:'MR',body:'Hip',contrast:'With',wrvu:1.62},{mod:'MR',body:'Hip',contrast:'W & W/O',wrvu:2.15},
+  {mod:'MR',body:'Pelvis',contrast:'Without',wrvu:1.46},{mod:'MR',body:'Pelvis',contrast:'With',wrvu:1.73},{mod:'MR',body:'Pelvis',contrast:'W & W/O',wrvu:2.20},
+  {mod:'MR',body:'Chest',contrast:'Without',wrvu:1.46},{mod:'MR',body:'Chest',contrast:'With',wrvu:1.73},{mod:'MR',body:'Chest',contrast:'W & W/O',wrvu:2.26},
+  {mod:'MR',body:'Ankle',contrast:'Without',wrvu:1.35},{mod:'MR',body:'Ankle',contrast:'With',wrvu:1.62},
+  {mod:'MR',body:'Wrist',contrast:'Without',wrvu:1.35},{mod:'MR',body:'Wrist',contrast:'With',wrvu:1.62},
+  {mod:'MR',body:'Elbow',contrast:'Without',wrvu:1.35},{mod:'MR',body:'Elbow',contrast:'With',wrvu:1.62},
+  {mod:'MR',body:'Foot',contrast:'Without',wrvu:1.35},{mod:'MR',body:'Foot',contrast:'With',wrvu:1.62},
+  {mod:'MR',body:'Jaw / TMJ',contrast:'Without',wrvu:1.48},
+  {mod:'MR',body:'SI Joint',contrast:'Without',wrvu:1.46},{mod:'MR',body:'Sacrum',contrast:'Without',wrvu:1.46},{mod:'MR',body:'Coccyx',contrast:'Without',wrvu:1.46},
+  {mod:'CT',body:'Knee',contrast:'Without',wrvu:1.00},{mod:'CT',body:'Knee',contrast:'With',wrvu:1.16},{mod:'CT',body:'Knee',contrast:'W & W/O',wrvu:1.22},
+  {mod:'CT',body:'Hip',contrast:'Without',wrvu:1.00},{mod:'CT',body:'Hip',contrast:'With',wrvu:1.16},{mod:'CT',body:'Hip',contrast:'W & W/O',wrvu:1.22},
+  {mod:'CT',body:'Lumbar Spine',contrast:'Without',wrvu:1.00},{mod:'CT',body:'Lumbar Spine',contrast:'With',wrvu:1.22},{mod:'CT',body:'Lumbar Spine',contrast:'W & W/O',wrvu:1.27},
+  {mod:'CT',body:'Cervical Spine',contrast:'Without',wrvu:1.00},{mod:'CT',body:'Cervical Spine',contrast:'With',wrvu:1.22},{mod:'CT',body:'Cervical Spine',contrast:'W & W/O',wrvu:1.27},
+  {mod:'CT',body:'Thoracic Spine',contrast:'Without',wrvu:1.00},{mod:'CT',body:'Thoracic Spine',contrast:'With',wrvu:1.22},
+  {mod:'CT',body:'Shoulder',contrast:'Without',wrvu:1.00},{mod:'CT',body:'Shoulder',contrast:'With',wrvu:1.16},
+  {mod:'CT',body:'Pelvis',contrast:'Without',wrvu:1.09},{mod:'CT',body:'Pelvis',contrast:'With',wrvu:1.16},{mod:'CT',body:'Pelvis',contrast:'W & W/O',wrvu:1.22},
+  {mod:'CT',body:'Ankle',contrast:'Without',wrvu:1.00},{mod:'CT',body:'Ankle',contrast:'With',wrvu:1.16},
+  {mod:'CT',body:'Foot',contrast:'Without',wrvu:1.00},{mod:'CT',body:'Foot',contrast:'With',wrvu:1.16},
+  {mod:'CT',body:'Wrist',contrast:'Without',wrvu:1.00},{mod:'CT',body:'Wrist',contrast:'With',wrvu:1.16},
+  {mod:'CT',body:'Elbow',contrast:'Without',wrvu:1.00},{mod:'CT',body:'Elbow',contrast:'With',wrvu:1.16},
+]
+
+function populateWrvuSel(){
+  const s=document.getElementById('wc');if(!s)return
+  s.innerHTML='<option value="">All contracts</option>'+S.contracts.map(c=>`<option value="${c.id}">${c.name}</option>`).join('')
+}
+
+function populateUploadSel(){
+  const s=document.getElementById('up-contract');if(!s)return
+  s.innerHTML='<option value="">Select contract…</option>'+S.contracts.map(c=>`<option value="${c.id}">${c.name} — $${c.rate.toFixed(2)}/wRVU</option>`).join('')
+}
+
+function renderWT(){
+  const cid=document.getElementById('wc')?.value||''
+  const search=(document.getElementById('ws')?.value||'').toLowerCase()
+  const mod=document.getElementById('wm')?.value||''
+  const filtered=WRVU.filter(w=>(mod?w.mod===mod:true)&&(search?w.body.toLowerCase().includes(search):true))
+  const show=cid?[S.contracts.find(c=>c.id===cid)].filter(Boolean):S.contracts
+  const thead=document.getElementById('wth'),tbody=document.getElementById('wtb');if(!thead||!tbody)return
+  thead.innerHTML='<th style="width:50px">Mod</th><th>Body Part</th><th>Contrast</th><th style="width:60px">wRVU</th>'+show.map(c=>`<th style="width:80px">${c.abbr}</th>`).join('')
+  tbody.innerHTML=filtered.map(w=>`<tr><td><span class="bge ${w.mod==='MR'?'bb':'bgr'}">${w.mod}</span></td><td style="font-weight:500">${w.body}</td><td style="color:#888;font-size:11px">${w.contrast}</td><td style="font-weight:600">${w.wrvu.toFixed(2)}</td>${show.map(c=>`<td style="color:#15803d;font-weight:600">$${(w.wrvu*c.rate).toFixed(2)}</td>`).join('')}</tr>`).join('')
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FILE UPLOAD & wRVU MATCHING
+// ═══════════════════════════════════════════════════════════════
+function renderUploadPage(){
+  const noC=document.getElementById('upload-no-contracts')
+  const fw=document.getElementById('upload-form-wrap')
+  document.getElementById('upload-results').style.display='none'
+  if(S.contracts.length===0){noC.style.display='flex';fw.style.display='none'}
+  else{noC.style.display='none';fw.style.display='block';populateUploadSel()}
+}
+
+function handleDrop(e){
+  e.preventDefault();document.getElementById('drop-zone').classList.remove('drag')
+  const f=e.dataTransfer.files[0];if(f)processFile(f)
+}
+
+function handleFileSelect(input){
+  const f=input.files[0];if(f)processFile(f)
+}
+
+function processFile(file){
+  const contractId=document.getElementById('up-contract').value
+  if(!contractId){alert('Please select a contract first');return}
+  const isCSV=file.name.toLowerCase().endsWith('.csv')
+  const reader=new FileReader()
+  if(isCSV){
+    reader.onload=e=>{
+      const rows=parseCSV(e.target.result)
+      if(rows.length===0){alert('File appears empty. Check it has headers and data rows.');return}
+      processRows(rows,contractId,file.name)
+    }
+    reader.readAsText(file)
+  } else {
+    // Excel file - try reading as binary for our self-contained xlsx parser
+    reader.onload=e=>{
+      try{
+        const rows=parseXlsxBinary(e.target.result)
+        if(!rows||rows.length===0){
+          alert('Could not read the Excel file automatically.\n\nPlease open it in Excel and save as CSV (File → Save As → CSV), then upload the CSV file instead.')
+          return
+        }
+        processRows(rows,contractId,file.name)
+      }catch(err){
+        console.error('Excel parse error:',err)
+        alert('Could not read the Excel file.\n\nPlease save it as CSV from Excel and try again.')
+      }
+    }
+    reader.readAsBinaryString(file)
+  }
+}
+
+// Robust CSV parser - handles quoted fields, commas inside values
+function parseCSV(text){
+  text=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n')
+  const lines=[]
+  let cur='',inQ=false
+  for(let i=0;i<text.length;i++){
+    const c=text[i]
+    if(c==='"'){inQ=!inQ}
+    else if(c==='\n'&&!inQ){lines.push(cur);cur=''}
+    else cur+=c
+  }
+  if(cur.trim())lines.push(cur)
+  if(lines.length<2)return[]
+  function parseLine(line){
+    const vals=[],chars=[...line]
+    let val='',inQ2=false
+    for(let i=0;i<chars.length;i++){
+      if(chars[i]==='"'){
+        if(inQ2&&chars[i+1]==='"'){val+='"';i++}
+        else inQ2=!inQ2
+      } else if(chars[i]===','&&!inQ2){vals.push(val.trim());val=''}
+      else val+=chars[i]
+    }
+    vals.push(val.trim())
+    return vals
+  }
+  const headers=parseLine(lines[0])
+  return lines.slice(1).filter(l=>l.trim()).map(line=>{
+    const vals=parseLine(line)
+    const obj={}
+    headers.forEach((h,i)=>obj[h]=(vals[i]||'').trim())
+    return obj
+  }).filter(r=>Object.values(r).some(v=>String(v).trim()))
+}
+
+// Self-contained xlsx parser (xlsx = ZIP of XML files)
+function parseXlsxBinary(bin){
+  // Scan zip local file headers (signature PK\x03\x04)
+  const files={}
+  let i=0
+  while(i<bin.length-30){
+    if(bin.charCodeAt(i)===0x50&&bin.charCodeAt(i+1)===0x4B&&bin.charCodeAt(i+2)===0x03&&bin.charCodeAt(i+3)===0x04){
+      const compMethod=bin.charCodeAt(i+8)|(bin.charCodeAt(i+9)<<8)
+      const compSize=bin.charCodeAt(i+18)|(bin.charCodeAt(i+19)<<8)|(bin.charCodeAt(i+20)<<16)|(bin.charCodeAt(i+21)<<24)
+      const nameLen=bin.charCodeAt(i+26)|(bin.charCodeAt(i+27)<<8)
+      const extraLen=bin.charCodeAt(i+28)|(bin.charCodeAt(i+29)<<8)
+      const name=bin.slice(i+30,i+30+nameLen)
+      const dataStart=i+30+nameLen+extraLen
+      if(compMethod===0&&compSize>0&&compSize<5000000){
+        files[name]=bin.slice(dataStart,dataStart+compSize)
+      }
+      i=Math.max(i+1,dataStart+(compSize>0?compSize:1))
+    } else i++
+  }
+
+  // Parse shared strings table
+  const sharedStrings=[]
+  const ssXml=files['xl/sharedStrings.xml']||''
+  const siMatches=ssXml.match(/<si[\s>][\s\S]*?<\/si>/g)||[]
+  siMatches.forEach(si=>{
+    const tMatches=si.match(/<t[^>]*>([^<]*)<\/t>/g)||[]
+    sharedStrings.push(tMatches.map(t=>t.replace(/<[^>]+>/g,'')).join(''))
+  })
+
+  // Find first worksheet
+  const sheetKey=Object.keys(files).find(k=>/xl\/worksheets\/sheet\d*.xml/.test(k))
+  const sheetXml=sheetKey?files[sheetKey]:''
+  if(!sheetXml)return[]
+
+  // Parse rows and cells
+  const rows=[]
+  const rowMatches=sheetXml.match(/<row[\s\S]*?<\/row>/g)||[]
+  rowMatches.forEach(rowXml=>{
+    const cells=[]
+    const cellMatches=rowXml.match(/<c [^>]*>[\s\S]*?<\/c>/g)||[]
+    let lastCol=-1
+    cellMatches.forEach(cell=>{
+      // Get column reference to handle sparse cells
+      const rMatch=cell.match(/r="([A-Z]+)\d+"/)
+      const col=rMatch?colIndex(rMatch[1]):lastCol+1
+      // Fill gaps with empty strings
+      while(cells.length<col)cells.push('')
+      lastCol=col
+      const typeMatch=cell.match(/t="([^"]*)"/)
+      const vMatch=cell.match(/<v>([^<]*)<\/v>/)
+      const tMatch=cell.match(/<t>([^<]*)<\/t>/)
+      let val=''
+      if(tMatch)val=tMatch[1]
+      else if(vMatch){
+        const v=vMatch[1]
+        if(typeMatch&&typeMatch[1]==='s')val=sharedStrings[parseInt(v)]||''
+        else if(typeMatch&&typeMatch[1]==='b')val=v==='1'?'TRUE':'FALSE'
+        else val=v
+      }
+      cells.push(decodeXmlEntities(val))
+    })
+    if(cells.some(c=>String(c).trim()))rows.push(cells)
+  })
+
+  if(rows.length<2)return[]
+  const headers=rows[0]
+  return rows.slice(1).map(row=>{
+    const obj={}
+    headers.forEach((h,i)=>obj[String(h).trim()]=String(row[i]||'').trim())
+    return obj
+  }).filter(r=>Object.values(r).some(v=>String(v).trim()))
+}
+
+function colIndex(col){
+  let n=0
+  for(let i=0;i<col.length;i++)n=n*26+(col.charCodeAt(i)-64)
+  return n-1
+}
+
+function decodeXmlEntities(s){
+  return String(s).replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'")
+}
+
+// Detect which column has what
+function detectCols(row){
+  const keys=Object.keys(row)
+  function find(...terms){return keys.find(k=>terms.some(t=>k.toLowerCase().includes(t.toLowerCase())))||null}
+  return {
+    accession: find('accession','acc #','acc#','order'),
+    procedure: find('procedure','description','exam','study','proc'),
+    physician: find('physician','radiologist','doctor','provider','reader','interp'),
+    date: find('date','exam date','read date','service date'),
+    facility: find('facility','site','location','hospital'),
+  }
+}
+
+// Match procedure name to wRVU value
+function matchWRVU(procedureName){
+  if(!procedureName)return{wrvu:null,confidence:'none',modality:null,bodyPart:null}
+  const p=procedureName.toUpperCase()
+  
+  // Determine modality
+  let modality=null
+  if(p.includes('MRI')||p.includes('MR ')||p.startsWith('MR')){modality='MR'}
+  else if(p.includes('CT ')||p.includes(' CT')||p.startsWith('CT')||p.includes('COMPUTED')){modality='CT'}
+  
+  if(!modality)return{wrvu:null,confidence:'none',modality:null,bodyPart:null}
+  
+  // Determine contrast
+  let contrastType='Without'
+  if((p.includes('W/WO')||p.includes('W & WO')||p.includes('WITH & WITHOUT')||p.includes('WITH AND WITHOUT')||p.includes('W+WO')))contrastType='W & W/O'
+  else if(p.includes(' W ')||p.includes('WITH CONTRAST')||p.includes(' W/')||p.includes('WITH GAD')||p.includes('WITH IV'))contrastType='With'
+  else if(p.includes('WITHOUT')||p.includes('WO')||p.includes('W/O')||p.includes('NON-CON'))contrastType='Without'
+  
+  // Detect body part
+  const bodyParts=[
+    ['Knee',['KNEE']],['Hip',['HIP']],['Shoulder',['SHOULDER','SHD']],
+    ['Lumbar Spine',['LUMBAR','LUMBOSACRAL','LS SPINE','L-SPINE','L SPINE']],
+    ['Cervical Spine',['CERVICAL','C-SPINE','C SPINE','CERVICAL SPINE']],
+    ['Thoracic Spine',['THORACIC','T-SPINE','T SPINE','THORACIC SPINE']],
+    ['Pelvis',['PELVIS','PELVIC']],['Chest',['CHEST','THORAX']],
+    ['Ankle',['ANKLE']],['Wrist',['WRIST']],['Elbow',['ELBOW']],
+    ['Foot',['FOOT','FEET']],['Hand',['HAND']],
+    ['Jaw / TMJ',['JAW','TMJ','TEMPOROMANDIBULAR']],
+    ['SI Joint',['SI JOINT','SACROILIAC']],['Sacrum',['SACRUM']],['Coccyx',['COCCYX']],
+  ]
+  
+  let bodyPart=null
+  for(const [name,terms] of bodyParts){
+    if(terms.some(t=>p.includes(t))){bodyPart=name;break}
+  }
+  
+  if(!bodyPart)return{wrvu:null,confidence:'none',modality,bodyPart:null}
+  
+  // Exact match
+  const exact=WRVU.find(w=>w.mod===modality&&w.body===bodyPart&&w.contrast===contrastType)
+  if(exact)return{wrvu:exact.wrvu,confidence:'exact',modality,bodyPart,contrast:contrastType}
+  
+  // Fuzzy — try without contrast variant
+  const fuzzy=WRVU.find(w=>w.mod===modality&&w.body===bodyPart&&w.contrast==='Without')
+  if(fuzzy)return{wrvu:fuzzy.wrvu,confidence:'fuzzy',modality,bodyPart,contrast:'Without'}
+  
+  return{wrvu:null,confidence:'none',modality,bodyPart}
+}
+
+// Match physician name to our physician list
+function matchPhysician(rawName){
+  if(!rawName)return null
+  const norm=rawName.toLowerCase().replace(/^dr\.?\s*/,'').trim()
+  for(const p of S.physicians){
+    const pn=p.name.toLowerCase().replace(/^dr\.?\s*/,'').trim()
+    if(pn===norm||pn.includes(norm)||norm.includes(pn))return p
+    const parts=norm.split(/[\s,]+/)
+    if(parts.some(part=>part.length>2&&pn.includes(part)))return p
+  }
+  return null
+}
+
+function processRows(rows,contractId,fileName){
+  const contract=S.contracts.find(c=>c.id===contractId)
+  if(!contract)return
+  const label=document.getElementById('up-label').value.trim()||fileName.replace(/\.[^.]+$/,'')
+  const cols=detectCols(rows[0])
+  
+  const processed=rows.map((row,i)=>{
+    const acc=cols.accession?String(row[cols.accession]||'').trim():`ROW-${i+1}`
+    const proc=cols.procedure?String(row[cols.procedure]||'').trim():''
+    const physRaw=cols.physician?String(row[cols.physician]||'').trim():''
+    const date=cols.date?String(row[cols.date]||'').trim():''
+    const wrvuResult=matchWRVU(proc)
+    const matchedPhys=matchPhysician(physRaw)
+    const revenue=wrvuResult.wrvu?wrvuResult.wrvu*contract.rate:0
+    let physCost=0
+    if(matchedPhys&&!matchedPhys.isCeo&&wrvuResult.modality){
+      physCost=wrvuResult.modality==='MR'?matchedPhys.mrRate:matchedPhys.ctRate
+    } else if(matchedPhys&&matchedPhys.isCeo){
+      physCost=revenue // CEO: all revenue kept
+    }
+    return{acc,proc,physRaw,date,wrvu:wrvuResult.wrvu,confidence:wrvuResult.confidence,modality:wrvuResult.modality,bodyPart:wrvuResult.bodyPart,contrast:wrvuResult.contrast||'',matchedPhys,revenue,physCost,margin:revenue-physCost}
+  })
+  
+  showUploadResults(processed,contract,label,contractId,fileName)
+}
+
+let pendingUpload=null
+
+function showUploadResults(cases,contract,label,contractId,fileName){
+  pendingUpload={cases,contract,label,contractId,fileName}
+  const total=cases.length
+  const matched=cases.filter(c=>c.wrvu!==null).length
+  const unmatched=total-matched
+  const totalWrvu=cases.reduce((s,c)=>s+(c.wrvu||0),0)
+  const totalRev=cases.reduce((s,c)=>s+c.revenue,0)
+  const totalCost=cases.reduce((s,c)=>s+c.physCost,0)
+  
+  const el=document.getElementById('upload-results')
+  el.style.display='block'
+  el.innerHTML=`
+    <div class="al as">✓ ${total} cases parsed from "${label}". ${matched} matched to wRVU values. ${unmatched>0?`<strong>${unmatched} unmatched</strong> — will be flagged.`:''}</div>
+    <div class="metrics" style="grid-template-columns:repeat(5,1fr);margin-bottom:12px">
+      <div class="m"><div class="ml">Cases</div><div class="mv">${total}</div></div>
+      <div class="m"><div class="ml">Total wRVUs</div><div class="mv">${totalWrvu.toFixed(2)}</div></div>
+      <div class="m"><div class="ml">Revenue</div><div class="mv" style="color:#15803d">$${totalRev.toFixed(2)}</div><div class="ms">wRVUs × $${contract.rate.toFixed(2)}</div></div>
+      <div class="m"><div class="ml">Physician Cost</div><div class="mv">$${totalCost.toFixed(2)}</div></div>
+      <div class="m"><div class="ml">Vanguard Margin</div><div class="mv" style="color:#15803d">$${(totalRev-totalCost).toFixed(2)}</div></div>
+    </div>
+    <div class="card" style="margin-bottom:10px">
+      <div class="ch"><span class="ct">Case Matching Results</span><span style="font-size:11px;color:#888">${matched}/${total} matched to wRVU values</span></div>
+      <div style="max-height:320px;overflow-y:auto">
+        <table><thead><tr><th>Accession</th><th>Procedure</th><th>Physician</th><th>Mod</th><th>Body Part</th><th>wRVU</th><th>Revenue</th><th>Phys. Pay</th><th>Margin</th><th>Match</th></tr></thead>
+        <tbody>${cases.slice(0,100).map(c=>`<tr>
+          <td style="font-family:monospace;font-size:11px">${c.acc}</td>
+          <td style="font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${c.proc}">${c.proc||'—'}</td>
+          <td style="font-size:11px">${c.matchedPhys?`${c.matchedPhys.name}${c.matchedPhys.isCeo?' <span class="bge bb">CEO</span>':''}`:c.physRaw?`<span style="color:#dc2626">${c.physRaw}?</span>`:'—'}</td>
+          <td>${c.modality?`<span class="bge ${c.modality==='MR'?'bb':'bgr'}">${c.modality}</span>`:'—'}</td>
+          <td style="font-size:11px">${c.bodyPart||'—'}</td>
+          <td style="font-weight:600">${c.wrvu?c.wrvu.toFixed(2):'<span style="color:#dc2626">—</span>'}</td>
+          <td style="color:#15803d;font-weight:600">${c.revenue?'$'+c.revenue.toFixed(2):'—'}</td>
+          <td>${c.physCost?'$'+c.physCost.toFixed(2):c.matchedPhys&&c.matchedPhys.isCeo?'<span style="color:#1d4ed8">kept</span>':'—'}</td>
+          <td style="color:#15803d;font-weight:600">${c.margin?'$'+c.margin.toFixed(2):'—'}</td>
+          <td><span class="bge ${c.confidence==='exact'?'bgg':c.confidence==='fuzzy'?'bgw':'bgr'}">${c.confidence}</span></td>
+        </tr>`).join('')}
+        ${cases.length>100?`<tr><td colspan="10" style="text-align:center;padding:10px;color:#888;font-size:11px">Showing first 100 of ${cases.length} cases</td></tr>`:''}
+        </tbody></table>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:8px">
+      <button class="btn" onclick="document.getElementById('upload-results').style.display='none';pendingUpload=null">Cancel</button>
+      <button class="btn bp" onclick="approveBatch()">✓ Approve & Save Batch</button>
+    </div>
+  `
+}
+
+function approveBatch(){
+  if(!pendingUpload)return
+  const{cases,contract,label,contractId,fileName}=pendingUpload
+  const now=new Date()
+  const batchId='b'+Date.now()
+  const totalWrvu=cases.reduce((s,c)=>s+(c.wrvu||0),0)
+  const totalRev=cases.reduce((s,c)=>s+c.revenue,0)
+  const totalCost=cases.reduce((s,c)=>s+c.physCost,0)
+  
+  const batch={
+    id:batchId,year:activeYear,month:now.getMonth(),contractId,label,fileName,
+    cases:cases.length,wrvus:totalWrvu,revenue:totalRev,physCost:totalCost,
+    status:'approved',createdAt:now.toISOString(),
+    caseRecords:cases.map(c=>({...c,matchedPhysId:c.matchedPhys?.id||null}))
+  }
+  S.batches.push(batch)
+  
+  // Create payment records for non-CEO physicians
+  const physPayments={}
+  cases.forEach(c=>{
+    if(c.matchedPhys&&!c.matchedPhys.isCeo&&c.physCost>0){
+      const pid=c.matchedPhys.id
+      if(!physPayments[pid])physPayments[pid]={physicianId:pid,physicianName:c.matchedPhys.name,amount:0}
+      physPayments[pid].amount+=c.physCost
+    }
+  })
+  Object.values(physPayments).forEach(pp=>{
+    S.payments.push({id:'pay'+Date.now()+Math.random(),batchId,year:activeYear,month:now.getMonth(),physicianId:pp.physicianId,physicianName:pp.physicianName,batchLabel:label,amount:pp.amount,status:'APPROVED',createdAt:now.toISOString()})
+  })
+  
+  // Update physician totals
+  S.physicians.forEach(p=>{
+    const pCases=cases.filter(c=>c.matchedPhys?.id===p.id)
+    p.cases+=pCases.length
+    p.revenue+=pCases.reduce((s,c)=>s+c.revenue,0)
+    p.paid+=pCases.filter(c=>!p.isCeo).reduce((s,c)=>s+c.physCost,0)
+  })
+  
+  pendingUpload=null
+  save()
+  document.getElementById('upload-results').style.display='none'
+  document.getElementById('up-label').value=''
+  alert(`Batch "${label}" approved and saved! ${batch.cases} cases, $${totalRev.toFixed(2)} revenue, $${(totalRev-totalCost).toFixed(2)} margin.`)
+  nav('batches',document.querySelector('[onclick*=batches]'))
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BATCHES PAGE
+// ═══════════════════════════════════════════════════════════════
+function renderBatchesPage(){
+  const el=document.getElementById('batches-wrap')
+  const yb=S.batches.filter(b=>b.year===activeYear)
+  if(yb.length===0){
+    el.innerHTML=`<div class="card"><div class="cb"><div class="empty-state"><div class="empty-icon">📂</div><div class="empty-title">No batches for ${activeYear}</div><div class="empty-sub">Upload your first case file to get started</div></div></div></div>`;return
+  }
+  el.innerHTML=`<div class="card"><table><thead><tr><th>Period</th><th>Contract</th><th>Cases</th><th>wRVUs</th><th>Revenue</th><th>Phys. Cost</th><th>Margin</th><th>Status</th><th></th></tr></thead><tbody>`+
+    [...yb].reverse().map(b=>{const c=S.contracts.find(x=>x.id===b.contractId)
+      return `<tr><td><div style="font-weight:600">${b.label}</div><div style="font-size:11px;color:#888">${new Date(b.createdAt).toLocaleDateString()}</div></td><td>${c?`<span class="bge bgr">${c.abbr}</span>`:''}</td><td>${b.cases}</td><td>${b.wrvus.toFixed(2)}</td><td style="color:#15803d">$${b.revenue.toFixed(2)}</td><td>$${b.physCost.toFixed(2)}</td><td style="color:#15803d;font-weight:600">$${(b.revenue-b.physCost).toFixed(2)}</td><td><span class="pill ${statusPill(b.status)}">${b.status}</span></td><td><button class="btn gh sm" onclick="openBatchModal('${b.id}')">View →</button></td></tr>`
+    }).join('')+'</tbody></table></div>'
+}
+
+function openBatchModal(id){
+  const b=S.batches.find(x=>x.id===id);if(!b)return
+  const c=S.contracts.find(x=>x.id===b.contractId)
+  document.getElementById('bm-title').textContent=b.label
+  const records=b.caseRecords||[]
+  document.getElementById('bm-content').innerHTML=`
+    <div class="metrics" style="grid-template-columns:repeat(4,1fr);margin-bottom:12px">
+      <div class="m"><div class="ml">Cases</div><div class="mv">${b.cases}</div></div>
+      <div class="m"><div class="ml">wRVUs</div><div class="mv">${b.wrvus.toFixed(2)}</div></div>
+      <div class="m"><div class="ml">Revenue</div><div class="mv" style="color:#15803d">$${b.revenue.toFixed(2)}</div></div>
+      <div class="m"><div class="ml">Margin</div><div class="mv" style="color:#15803d">$${(b.revenue-b.physCost).toFixed(2)}</div></div>
+    </div>
+    <div style="max-height:400px;overflow-y:auto">
+    <table><thead><tr><th>Accession</th><th>Procedure</th><th>Physician</th><th>Mod</th><th>wRVU</th><th>Revenue</th><th>Phys. Pay</th><th>Match</th></tr></thead>
+    <tbody>${records.slice(0,200).map(r=>`<tr>
+      <td style="font-family:monospace;font-size:11px">${r.acc}</td>
+      <td style="font-size:11px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.proc||'—'}</td>
+      <td style="font-size:11px">${r.matchedPhys?.name||r.physRaw||'—'}</td>
+      <td>${r.modality?`<span class="bge ${r.modality==='MR'?'bb':'bgr'}">${r.modality}</span>`:'—'}</td>
+      <td>${r.wrvu?r.wrvu.toFixed(2):'—'}</td>
+      <td style="color:#15803d">${r.revenue?'$'+r.revenue.toFixed(2):'—'}</td>
+      <td>${r.physCost?'$'+r.physCost.toFixed(2):r.matchedPhys?.isCeo?'kept':'—'}</td>
+      <td><span class="bge ${r.confidence==='exact'?'bgg':r.confidence==='fuzzy'?'bgw':'bgr'}">${r.confidence||'—'}</span></td>
+    </tr>`).join('')}</tbody></table></div>`
+  openModal('batch-modal')
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PAYMENTS
+// ═══════════════════════════════════════════════════════════════
+function renderPayments(){
+  const el=document.getElementById('payments-wrap')
+  const yp=S.payments.filter(p=>p.year===activeYear)
+  if(yp.length===0){
+    el.innerHTML='<div class="empty-state"><div class="empty-icon">💳</div><div class="empty-title">No payments yet</div><div class="empty-sub">Payments appear here once batches are approved</div></div>';return
+  }
+  const STEPS={'APPROVED':0,'PAYMENT_INITIATED':1,'PAYMENT_SENT':2,'DEPOSITED':3}
+  const deposited=yp.filter(p=>p.status==='DEPOSITED').reduce((s,p)=>s+p.amount,0)
+  const pending=yp.filter(p=>p.status!=='DEPOSITED').reduce((s,p)=>s+p.amount,0)
+  el.innerHTML=`<div class="metrics" style="margin-bottom:12px">
+    <div class="m"><div class="ml">Deposited</div><div class="mv" style="color:#15803d">$${deposited.toFixed(2)}</div></div>
+    <div class="m"><div class="ml">Pending / In Transit</div><div class="mv" style="color:#a16207">$${pending.toFixed(2)}</div></div>
+    <div class="m"><div class="ml">Total Payments</div><div class="mv">${yp.length}</div></div>
+  </div>`+
+  yp.map(p=>{
+    const cur=STEPS[p.status]??-1
+    const labels=['Approved','Initiated','Sent','Deposited']
+    const track=labels.map((l,i)=>`<div style="display:flex;flex-direction:column;align-items:center;flex:1"><div style="width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;${i<=cur?'background:#0f172a;color:#fff':i===cur+1?'background:#f1f0eb;border:2px solid #0f172a;color:#0f172a':'background:#f1f0eb;color:#aaa'}">${i<=cur?'✓':i+1}</div><div style="font-size:9px;color:#888;margin-top:2px">${l}</div></div>${i<3?`<div style="flex:1;height:2px;background:${i<cur?'#0f172a':'rgba(0,0,0,0.08)'};margin-bottom:12px"></div>`:''}`).join('')
+    const action=p.status==='APPROVED'?`<button class="btn bp sm" onclick="advPay('${p.id}','PAYMENT_INITIATED')">Mark Initiated →</button>`:p.status==='PAYMENT_INITIATED'?`<button class="btn bp sm" onclick="advPay('${p.id}','PAYMENT_SENT')">Mark Sent →</button>`:p.status==='PAYMENT_SENT'?`<button class="btn bs sm" onclick="advPay('${p.id}','DEPOSITED')">✓ Mark Deposited</button>`:''
+    return `<div class="card" style="margin-bottom:8px"><div style="padding:11px 14px;display:flex;align-items:start;justify-content:space-between"><div><div style="font-weight:600">${p.physicianName}</div><div style="color:#888;font-size:11px;margin-top:1px">${p.batchLabel}</div></div><div style="text-align:right"><div style="font-size:17px;font-weight:700">$${p.amount.toFixed(2)}</div><span class="pill ${statusPill(p.status.toLowerCase())}" style="margin-top:2px">${p.status.replace(/_/g,' ')}</span></div></div><div style="padding:0 14px 8px;display:flex;align-items:center">${track}</div>${action?`<div style="padding:6px 14px;border-top:0.5px solid rgba(0,0,0,0.05);display:flex;justify-content:flex-end">${action}</div>`:''}</div>`
+  }).join('')
+}
+
+function advPay(id,s){
+  const p=S.payments.find(x=>x.id===id);if(!p)return
+  p.status=s;save();renderPayments()
+}
+
+function renderRatesPage(){
+  const el=document.getElementById('rates-wrap')
+  if(S.physicians.length===0){el.innerHTML='<div class="card"><div class="cb"><div class="empty-state"><div class="empty-icon">👨‍⚕️</div><div class="empty-title">No physicians yet</div></div></div></div>';return}
+  el.innerHTML='<div class="al ai" style="font-size:12px">ℹ Physicians are paid a flat rate per case — MR or CT — regardless of the wRVU value. Edit and save per row.</div>'+
+    '<div class="card"><div class="ch"><span class="ct">Physician pay rates</span></div>'+
+    '<table><thead><tr><th>Physician</th><th>Email</th><th>Contracts</th><th>MR Rate ($/case)</th><th>CT Rate ($/case)</th><th></th></tr></thead><tbody>'+
+    S.physicians.map((p,i)=>`<tr>
+      <td><div style="font-weight:600">${p.name}${p.isCeo?' <span style="font-size:9px;background:#dbeafe;color:#1d4ed8;padding:1px 5px;border-radius:3px">CEO</span>':''}</div></td>
+      <td style="color:#888;font-size:11px">${p.email}</td>
+      <td>${p.contracts.map(cid=>{const c=S.contracts.find(x=>x.id===cid);return c?`<span class="bge bgr" style="margin-right:3px">${c.abbr}</span>`:''}).join('')}</td>
+      <td>${p.isCeo?'<span style="color:#bbb">N/A</span>':`<div style="display:flex;align-items:center;gap:4px"><span style="color:#999">$</span><input type="number" step="0.01" min="0" value="${p.mrRate.toFixed(2)}" id="rm${i}" style="width:70px;padding:5px 7px;font-size:12px"></div>`}</td>
+      <td>${p.isCeo?'<span style="color:#bbb">N/A</span>':`<div style="display:flex;align-items:center;gap:4px"><span style="color:#999">$</span><input type="number" step="0.01" min="0" value="${p.ctRate.toFixed(2)}" id="rc${i}" style="width:70px;padding:5px 7px;font-size:12px"></div>`}</td>
+      <td>${p.isCeo?'':`<button class="btn bp sm" id="rb${i}" onclick="savePR(${i})">Save</button>`}</td>
+    </tr>`).join('')+'</tbody></table></div>'
+}
+
+function savePR(i){
+  const mr=parseFloat(document.getElementById('rm'+i).value),ct=parseFloat(document.getElementById('rc'+i).value)
+  if(!isNaN(mr))S.physicians[i].mrRate=mr
+  if(!isNaN(ct))S.physicians[i].ctRate=ct
+  const btn=document.getElementById('rb'+i);btn.textContent='✓ Saved!';btn.classList.add('bs');btn.classList.remove('bp')
+  setTimeout(()=>{btn.textContent='Save';btn.classList.remove('bs');btn.classList.add('bp')},2500)
+  save();renderPhysicians()
+}
+
+// ═══════════════════════════════════════════════════════════════
+// NACHA REPORTS
+// ═══════════════════════════════════════════════════════════════
+function populateNachaSel(){
+  const s=document.getElementById('nacha-yr-sel');if(!s)return
+  s.innerHTML=S.years.map(y=>`<option value="${y}" ${y===activeYear?'selected':''}>${y}</option>`).join('')
+}
+
+function renderNacha(){
+  const y=parseInt(document.getElementById('nacha-yr-sel')?.value||activeYear)
+  document.getElementById('nacha-yr-title').textContent=`${y} Monthly NACHA Reports`
+  const now=new Date()
+  const nachaPhys=S.physicians.filter(p=>!p.isCeo)
+  document.getElementById('nacha-list').innerHTML=MONTHS.map((month,i)=>{
+    const monthPayments=S.payments.filter(p=>p.year===y&&p.month===i&&!S.physicians.find(x=>x.id===p.physicianId)?.isCeo)
+    const total=monthPayments.reduce((s,p)=>s+p.amount,0)
+    const isPast=y<now.getFullYear()||(y===now.getFullYear()&&i<now.getMonth())
+    const isCurrent=y===now.getFullYear()&&i===now.getMonth()
+    if(total>0||monthPayments.length>0){
+      const pnames=[...new Set(monthPayments.map(p=>p.physicianName))]
+      return `<div class="nacha-row"><div><div style="font-weight:600;font-size:12px">${month} ${y}</div><div style="font-size:11px;color:#888;margin-top:2px">${pnames.join(', ')||'—'} · $${total.toFixed(2)} total</div></div><div style="display:flex;align-items:center;gap:8px"><div style="font-weight:600">$${total.toFixed(2)}</div><button class="btn bp sm" onclick="dlNacha('${month}',${y},${i})">Download NACHA</button></div></div>`
+    } else if(isCurrent){
+      return `<div class="nacha-row" style="background:#fafaf8"><div><div style="font-weight:600;font-size:12px">${month} ${y} <span style="font-size:10px;background:#dbeafe;color:#1d4ed8;padding:1px 5px;border-radius:3px">Current</span></div><div style="font-size:11px;color:#888;margin-top:2px">Approve batches to generate payment data</div></div><button class="btn sm" onclick="dlNacha('${month}',${y},${i})">Preview Download</button></div>`
+    } else if(isPast){
+      return `<div class="nacha-row"><div style="font-weight:600;font-size:12px;color:#aaa">${month} ${y}</div><span class="pill pgr">No data</span></div>`
+    } else {
+      return `<div class="nacha-row" style="opacity:0.3"><div style="font-weight:600;font-size:12px;color:#aaa">${month} ${y}</div><span style="font-size:11px;color:#bbb">Future</span></div>`
+    }
+  }).join('')
+}
+
+function dlNacha(month,year,monthIdx){
+  const monthPayments=S.payments.filter(p=>p.year===year&&p.month===monthIdx&&!S.physicians.find(x=>x.id===p.physicianId)?.isCeo)
+  const total=monthPayments.reduce((s,p)=>s+p.amount,0)
+  let txt=`NACHA CCD+ Payment File — Vanguard Telerad
+Period: ${month} ${year}
+Generated: ${new Date().toLocaleDateString()}
+Note: Dr. Kosarek excluded — revenue retained by Vanguard
+
+${'='.repeat(60)}
+FILE HEADER
+Company: VANGUARD TELERAD
+Effective Date: ${month.slice(0,3).toUpperCase()} ${year}
+${'='.repeat(60)}
+
+BATCH HEADER — Payroll/Contractor ACH Credits
+
+`
+  if(monthPayments.length===0){txt+=`No approved payments for ${month} ${year}.
+`}
+  else{
+    monthPayments.forEach(p=>{
+      txt+=`ENTRY: ${p.physicianName}
+  Transaction type: Credit (22)
+  Amount: $${p.amount.toFixed(2)}
+  Routing: [Enter bank routing number]
+  Account: [Enter bank account number]
+  Addenda: ${month.slice(0,3).toUpperCase()}${year} PHYSICIAN PAY VANGUARD TELERAD
+
+`
+    })
+  }
+  txt+=`${'='.repeat(60)}
+BATCH TOTAL: $${total.toFixed(2)} · ${monthPayments.length} entries
+FILE TOTAL: $${total.toFixed(2)}
+${'='.repeat(60)}
+
+TO USE: Upload this file in your bank's ACH Origination portal.
+Funds typically settle within 1 business day. No fees.
+`
+  dlFile(`VanguardTelerad_NACHA_${month}_${year}.txt`,txt)
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PHYSICIAN PORTAL
+// ═══════════════════════════════════════════════════════════════
+function getMyPhysician(){
+  if(!currentUser||currentUser.role!=='physician')return null
+  return S.physicians.find(p=>p.id===currentUser.physicianId)
+}
+
+function renderPhysDash(){
+  const p=getMyPhysician();if(!p)return
+  document.getElementById('phys-dash-name').textContent='My Dashboard'
+  document.getElementById('phys-dash-sub').textContent=`${p.name} · ${p.specialty||'Radiology'}`
+  const myPayments=S.payments.filter(x=>x.physicianId===p.id)
+  const earned=myPayments.reduce((s,x)=>s+x.amount,0)
+  const pending=myPayments.filter(x=>x.status!=='DEPOSITED').reduce((s,x)=>s+x.amount,0)
+  const paid=myPayments.filter(x=>x.status==='DEPOSITED').reduce((s,x)=>s+x.amount,0)
+  document.getElementById('pd-earned').textContent='$'+earned.toFixed(2)
+  document.getElementById('pd-cases').textContent=p.cases
+  document.getElementById('pd-pending').textContent='$'+pending.toFixed(2)
+  document.getElementById('pd-paid').textContent='$'+paid.toFixed(2)
+  // Contracts
+  const el=document.getElementById('pd-contracts')
+  if(p.contracts.length===0){el.innerHTML='<div style="padding:14px;color:#aaa;font-size:12px">No contracts assigned yet. Contact your admin.</div>'}
+  else{el.innerHTML='<div style="display:flex;gap:10px;padding:14px;flex-wrap:wrap">'+p.contracts.map(cid=>{const c=S.contracts.find(x=>x.id===cid);return c?`<div style="flex:1;min-width:150px;padding:11px;background:#f8f7f4;border-radius:8px"><div style="font-weight:600;margin-bottom:3px">${c.name}</div><div style="font-size:11px;color:#888">MR: $${p.mrRate.toFixed(2)}/case · CT: $${p.ctRate.toFixed(2)}/case</div></div>`:''}).join('')+'</div>'}
+  // Recent batches
+  const wrap=document.getElementById('pd-batches-wrap')
+  if(myPayments.length===0){wrap.innerHTML='<div style="padding:24px;text-align:center;color:#aaa;font-size:12px">No batches yet.</div>'}
+  else{wrap.innerHTML=`<table><thead><tr><th>Period</th><th>Amount</th><th>Status</th></tr></thead><tbody>`+
+    [...myPayments].reverse().slice(0,8).map(x=>`<tr><td style="font-weight:500">${x.batchLabel}</td><td style="font-weight:600">$${x.amount.toFixed(2)}</td><td><span class="pill ${statusPill(x.status.toLowerCase())}">${x.status.replace(/_/g,' ')}</span></td></tr>`).join('')+'</tbody></table>'}
+}
+
+function renderPhysCases(){
+  const p=getMyPhysician();if(!p){document.getElementById('phys-cases-wrap').innerHTML='<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">No cases</div></div>';return}
+  const myCases=S.batches.flatMap(b=>b.caseRecords||[]).filter(c=>c.matchedPhysId===p.id)
+  const el=document.getElementById('phys-cases-wrap')
+  if(myCases.length===0){el.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">No cases yet</div><div class="empty-sub">Cases appear here once batches are approved</div></div>';return}
+  el.innerHTML=`<div class="card"><div class="ch"><span class="ct">All My Cases</span><span style="font-size:11px;color:#888">${myCases.length} total</span></div>
+    <div style="max-height:500px;overflow-y:auto"><table><thead><tr><th>Accession</th><th>Procedure</th><th>Mod</th><th>Body Part</th><th>wRVU</th><th>My Pay</th><th>Match</th></tr></thead>
+    <tbody>${myCases.slice().reverse().slice(0,200).map(c=>`<tr>
+      <td style="font-family:monospace;font-size:11px">${c.acc}</td>
+      <td style="font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.proc||'—'}</td>
+      <td>${c.modality?`<span class="bge ${c.modality==='MR'?'bb':'bgr'}">${c.modality}</span>`:'—'}</td>
+      <td style="font-size:11px">${c.bodyPart||'—'}</td>
+      <td style="font-weight:600">${c.wrvu?c.wrvu.toFixed(2):'—'}</td>
+      <td style="font-weight:600;color:#15803d">${c.physCost?'$'+c.physCost.toFixed(2):'—'}</td>
+      <td><span class="bge ${c.confidence==='exact'?'bgg':c.confidence==='fuzzy'?'bgw':'bgr'}">${c.confidence||'—'}</span></td>
+    </tr>`).join('')}</tbody></table></div></div>`
+}
+
+function renderPhysPayPage(){
+  const p=getMyPhysician();if(!p){document.getElementById('phys-pay-wrap').innerHTML='<div class="empty-state"><div class="empty-icon">💳</div><div class="empty-title">No payments</div></div>';return}
+  const myPayments=S.payments.filter(x=>x.physicianId===p.id)
+  const el=document.getElementById('phys-pay-wrap')
+  if(myPayments.length===0){el.innerHTML='<div class="empty-state"><div class="empty-icon">💳</div><div class="empty-title">No payments yet</div><div class="empty-sub">Payments appear here once batches are approved by admin</div></div>';return}
+  const total=myPayments.reduce((s,x)=>s+x.amount,0)
+  const paid=myPayments.filter(x=>x.status==='DEPOSITED').reduce((s,x)=>s+x.amount,0)
+  const pending=myPayments.filter(x=>x.status!=='DEPOSITED').reduce((s,x)=>s+x.amount,0)
+  el.innerHTML=`<div class="metrics" style="margin-bottom:12px">
+    <div class="m"><div class="ml">Total Earned</div><div class="mv" style="color:#15803d">$${total.toFixed(2)}</div></div>
+    <div class="m"><div class="ml">Deposited</div><div class="mv" style="color:#15803d">$${paid.toFixed(2)}</div></div>
+    <div class="m"><div class="ml">Pending</div><div class="mv" style="color:#a16207">$${pending.toFixed(2)}</div></div>
+  </div>
+  <div class="card"><table><thead><tr><th>Period</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
+  <tbody>${[...myPayments].reverse().map(x=>`<tr><td style="font-weight:600">${x.batchLabel}</td><td style="font-weight:700">$${x.amount.toFixed(2)}</td><td><span class="pill ${statusPill(x.status.toLowerCase())}">${x.status.replace(/_/g,' ')}</span></td><td style="color:#888;font-size:11px">${new Date(x.createdAt).toLocaleDateString()}</td></tr>`).join('')}
+  </tbody></table></div>`
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════════════════════════════
+function renderSettings(){renderContracts();populateWrvuSel();renderWT();renderRatesPage();renderYearArch()}
+
+// ═══════════════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════════════
+function dlFile(name,content){
+  const a=document.createElement('a');a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(content);a.download=name;a.click()
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// INIT — ensure Jordan and Erik always exist as physicians
+// ═══════════════════════════════════════════════════════════════
+DEFAULT_PHYSICIANS.forEach(dp=>{
+  if(!S.physicians.find(p=>p.id===dp.id))S.physicians.push({...dp})
+})
+save()
+
+</script>
+</body>
+</html>
